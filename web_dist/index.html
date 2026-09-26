@@ -5,710 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>နေ့စဉ် အလုပ်ချိန်နှင့် လစာမှတ်တမ်း</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24' fill='none' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10' stroke='%233b82f6'%3E%3C/circle%3E%3Cpolyline points='12 6 12 12' stroke='%233b82f6'%3E%3C/polyline%3E%3Ccircle cx='12' cy='12' r='3' stroke='%2310b981'%3E%3C/circle%3E%3C/svg%3E">
-    <script src="https://cdn.tailwindcss.com">
-        // --- RICH VISUAL USER GUIDE DATA ---
-        const GUIDE_CONTENT = {
-            my: {
-                user_guide_banner_title: "App သုံးစွဲနည်း လမ်းညွှန်",
-                user_guide_banner_sub: "လုပ်ခလစာတွက်ချက်နည်းနှင့် အသုံးပြုပုံ အဆင့်ဆင့်",
-                user_guide_btn_label: "လမ်းညွှန်ဖတ်ရန်",
-                guide_modal_title: "App သုံးစွဲနည်း လမ်းညွှန်",
-                guide_modal_sub: "Smart Salary Tracker အသုံးပြုပုံ အဆင့်ဆင့် ရှင်းလင်းချက်",
-                tab_worklog_text: "၁။ အလုပ်ချိန်မှတ်နည်း",
-                tab_calendar_text: "၂။ ပြက္ခဒိန်နှင့် အကျဉ်းချုပ်",
-                tab_salary_text: "၃။ လစာနှင့် အာမခံ",
-                tab_backup_text: "၄။ Backup & Drive",
-                guide_close_btn_text: "နားလည်ပါပြီ (ပိတ်မည်)",
-                worklog: `
-                    <div class="space-y-3.5">
-                        <div class="p-3.5 bg-amber-50 rounded-2xl border border-amber-200 shadow-xs">
-                            <div class="flex items-center gap-2 font-bold text-amber-900 text-sm mb-1.5">
-                                <span class="w-6 h-6 rounded-lg bg-amber-500 text-white flex items-center justify-center text-xs">⚡</span>
-                                <span>၁-ချက်နှိပ် ယနေ့မှတ်တမ်း အမြန်ထည့်နည်း (Quick Add)</span>
-                            </div>
-                            <p class="text-xs text-amber-800 leading-relaxed">
-                                ပင်မစာမျက်နှာ (Home) ရှိ <b>"⚡ ယနေ့မှတ်တမ်း အမြန်ထည့်မည်"</b> ခလုတ်ကို နှိပ်လိုက်ရုံဖြင့် Settings တွင် သင်သတ်မှတ်ထားသော မူသေအချိန် (ဥပမာ: 08:00 ~ 17:00) ဖြင့် ယနေ့အလုပ်မှတ်တမ်းကို ချက်ချင်း အလွယ်တကူ သိမ်းဆည်းပေးပါသည်။
-                            </p>
-                        </div>
-
-                        <div class="p-3.5 bg-blue-50/70 rounded-2xl border border-blue-200 shadow-xs">
-                            <div class="font-bold text-blue-900 text-sm mb-2 flex items-center gap-2">
-                                <span class="w-6 h-6 rounded-lg bg-blue-600 text-white flex items-center justify-center text-xs">🎯</span>
-                                <span>ကိုရီးယား E-9 အလုပ်ဆိုင်း ခလုတ်များ (Shift Presets)</span>
-                            </div>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                                <div class="p-2.5 bg-white rounded-xl border border-emerald-200">
-                                    <span class="font-bold text-emerald-800">☀️ နေ့ဆိုင်း (Day Shift)</span>
-                                    <p class="text-[11px] text-slate-600 mt-0.5">08:00 ~ 17:00 (အခြေခံ ၈ နာရီ၊ နေ့လယ်စာ ၁ နာရီ အလိုအလျောက် နုတ်ပြီး)</p>
-                                </div>
-                                <div class="p-2.5 bg-white rounded-xl border border-amber-200">
-                                    <span class="font-bold text-amber-800">⚡ နေ့ဆိုင်း + OT (Day + OT)</span>
-                                    <p class="text-[11px] text-slate-600 mt-0.5">08:00 ~ 20:00 (အခြေခံ ၈ နာရီ + OT ၂.၅ နာရီ၊ ညနေစာ ၃၀ မိနစ် နုတ်ပြီး)</p>
-                                </div>
-                                <div class="p-2.5 bg-white rounded-xl border border-indigo-200">
-                                    <span class="font-bold text-indigo-800">🌙 ညဆိုင်း (Night Shift)</span>
-                                    <p class="text-[11px] text-slate-600 mt-0.5">20:00 ~ 05:00 (အခြေခံ ၈ နာရီ + ညဆိုင်းကြေး 야간수당 0.5x)</p>
-                                </div>
-                                <div class="p-2.5 bg-white rounded-xl border border-purple-200">
-                                    <span class="font-bold text-purple-800">✨ ညဆိုင်း + OT (Night + OT)</span>
-                                    <p class="text-[11px] text-slate-600 mt-0.5">20:00 ~ 08:00 (အခြေခံ ၈ နာရီ + OT ၂.၅ နာရီ + ညဆိုင်းကြေး)</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="p-3.5 bg-emerald-50/70 rounded-2xl border border-emerald-200 shadow-xs">
-                            <div class="font-bold text-emerald-900 text-sm mb-1.5 flex items-center gap-2">
-                                <span class="w-6 h-6 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-xs">☕</span>
-                                <span>ထမင်းစားနှင့် နားချိန် အလိုအလျောက် နုတ်ယူမှု (Break Deductions)</span>
-                            </div>
-                            <p class="text-xs text-emerald-800 leading-relaxed">
-                                Settings ကဏ္ဍ (၃) တွင် သင့်စက်ရုံအချိန်အတိုင်း နေ့လယ်စာ (Lunch)၊ ညနေစာ (Dinner)၊ ညသန်းခေါင်စာ (Midnight Meal) နှင့် မနက်စောစောနားချိန်များကို သတ်မှတ်ထားပါက မှတ်တမ်းထည့်တိုင်း အလုပ်ချိန်ထဲမှ အလိုအလျောက် နုတ်ပေးသဖြင့် ကိုယ်တိုင်နုတ်ယူတွက်ချက်စရာ မလိုပါ။
-                            </p>
-                        </div>
-
-                        <div class="p-3.5 bg-purple-50/70 rounded-2xl border border-purple-200 shadow-xs">
-                            <div class="font-bold text-purple-900 text-sm mb-1.5 flex items-center gap-2">
-                                <span class="w-6 h-6 rounded-lg bg-purple-600 text-white flex items-center justify-center text-xs">🏖️</span>
-                                <span>ခွင့်ရက်များနှင့် လစာရပိတ်ရက် မှတ်တမ်းတင်နည်း</span>
-                            </div>
-                            <p class="text-xs text-purple-800 leading-relaxed">
-                                မှတ်တမ်းထည့်သွင်းသည့် Modal အောက်ခြေရှိ <b>"+ နှစ်စဉ်/လစဉ်ခွင့် မှတ်ရန် (연차)"</b> သို့မဟုတ် <b>"+ 유급휴일 - လစာရသော ပိတ်ရက်"</b> ခလုတ်ကို နှိပ်၍ ခွင့်ရက်များအတွက် အခြေခံလုပ်ခ (၈ နာရီစာ) ကို လစာထဲတွင် တိုက်ရိုက်ထည့်သွင်းခံစားနိုင်ပါသည်။
-                            </p>
-                        </div>
-                    </div>
-                `,
-                calendar: `
-                    <div class="space-y-3.5">
-                        <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 shadow-xs">
-                            <div class="font-bold text-slate-800 text-sm mb-2 flex items-center gap-2">
-                                <span class="w-6 h-6 rounded-lg bg-slate-700 text-white flex items-center justify-center text-xs">🎨</span>
-                                <span>ပြက္ခဒိန် အမှတ်အသားနှင့် အရောင်များ (Calendar Badges)</span>
-                            </div>
-                            <div class="grid grid-cols-2 gap-2 text-xs">
-                                <div class="flex items-center gap-2 p-2 bg-white rounded-xl border border-emerald-200">
-                                    <span class="w-3.5 h-3.5 rounded-full bg-emerald-500 shrink-0"></span>
-                                    <div><b class="text-emerald-800">အစိမ်းရောင်</b><p class="text-[10px] text-slate-500">ပုံမှန် အခြေခံ အလုပ်ဆင်းချိန်</p></div>
-                                </div>
-                                <div class="flex items-center gap-2 p-2 bg-white rounded-xl border border-amber-200">
-                                    <span class="w-3.5 h-3.5 rounded-full bg-amber-500 shrink-0"></span>
-                                    <div><b class="text-amber-800">လိမ္မော်ရောင်</b><p class="text-[10px] text-slate-500">အချိန်ပို OT (1.5x လုပ်ခ)</p></div>
-                                </div>
-                                <div class="flex items-center gap-2 p-2 bg-white rounded-xl border border-indigo-200">
-                                    <span class="w-3.5 h-3.5 rounded-full bg-indigo-500 shrink-0"></span>
-                                    <div><b class="text-indigo-800">ခရမ်းရောင်</b><p class="text-[10px] text-slate-500">ညဆိုင်းကြေး 야간 (22:00~06:00)</p></div>
-                                </div>
-                                <div class="flex items-center gap-2 p-2 bg-white rounded-xl border border-purple-200">
-                                    <span class="w-3.5 h-3.5 rounded-full bg-purple-500 shrink-0"></span>
-                                    <div><b class="text-purple-800">ခွင့်ရက် / ပိတ်ရက်</b><p class="text-[10px] text-slate-500">연차ခွင့် သို့မဟုတ် 유급휴일</p></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="p-3.5 bg-blue-50/70 rounded-2xl border border-blue-200 shadow-xs">
-                            <div class="font-bold text-blue-900 text-sm mb-1.5 flex items-center gap-2">
-                                <span class="w-6 h-6 rounded-lg bg-blue-600 text-white flex items-center justify-center text-xs">👆</span>
-                                <span>ရက်စွဲတစ်ခုချင်းစီ အသေးစိတ် စစ်ဆေးခြင်းနှင့် ပြင်ဆင်ခြင်း</span>
-                            </div>
-                            <p class="text-xs text-blue-800 leading-relaxed">
-                                ပြက္ခဒိန်ပေါ်ရှိ မှတ်တမ်းတင်ထားသော မည်သည့်ရက်ကိုမဆို နှိပ်လိုက်ပါက ထိုနေ့အတွက် စတင်ချိန်၊ ပြီးဆုံးချိန်၊ နားချိန်နုတ်ယူမှု၊ ရရှိမည့် အခြေခံလုပ်ခနှင့် OT လုပ်ခများကို ရှင်းလင်းစွာ မြင်တွေ့ရပြီး အချိန်မရွေး ပြန်လည်ပြင်ဆင်ခြင်း (Edit) သို့မဟုတ် ဖျက်ပစ်ခြင်း (Delete) ပြုလုပ်နိုင်ပါသည်။
-                            </p>
-                        </div>
-
-                        <div class="p-3.5 bg-indigo-50/70 rounded-2xl border border-indigo-200 shadow-xs">
-                            <div class="font-bold text-indigo-900 text-sm mb-1.5 flex items-center gap-2">
-                                <span class="w-6 h-6 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-xs">📊</span>
-                                <span>လစဉ် အကျဉ်းချုပ် ကတ် (Monthly Summary)</span>
-                            </div>
-                            <p class="text-xs text-indigo-800 leading-relaxed">
-                                ပြက္ခဒိန်ဘေးရှိ လစဉ်အကျဉ်းချုပ်ကတ်တွင် တစ်လလုံးအတွက် စုစုပေါင်း အလုပ်ဆင်းရက်၊ သာမန်ရက်၊ ပိတ်ရက်၊ ညဆိုင်းရက်၊ အခြေခံနာရီပေါင်း၊ OT နာရီပေါင်း၊ ညဆိုင်းနာရီပေါင်း၊ အပတ်စဉ်နားရက် ခံစားခွင့် (주휴수당) နှင့် ခန့်မှန်းရရှိမည့် စုစုပေါင်းလစာ (KRW) ကို အချိန်နှင့်တပြေးညီ တိကျစွာ တွက်ချက်ပြသပေးပါသည်။
-                            </p>
-                        </div>
-                    </div>
-                `,
-                salary: `
-                    <div class="space-y-3.5">
-                        <div class="p-3.5 bg-teal-50 rounded-2xl border border-teal-200 shadow-xs">
-                            <div class="font-bold text-teal-900 text-sm mb-2 flex items-center gap-2">
-                                <span class="w-6 h-6 rounded-lg bg-teal-600 text-white flex items-center justify-center text-xs">🏛️</span>
-                                <span>ကိုရီးယားနိုင်ငံ ၄ မျိုး အာမခံ ဖြတ်တောက်မှု (4 Major Insurances)</span>
-                            </div>
-                            <div class="space-y-1.5 text-xs text-teal-950">
-                                <div class="flex justify-between p-2 bg-white rounded-xl border border-teal-100">
-                                    <span><b>၁။ အမျိုးသားပင်စင် (국민연금)</b>: 4.5%</span>
-                                    <span class="text-[11px] text-teal-700">(E-9 နိုင်ငံသဘောတူညီချက်အရ)</span>
-                                </div>
-                                <div class="flex justify-between p-2 bg-white rounded-xl border border-teal-100">
-                                    <span><b>၂။ ကျန်းမာရေးအာမခံ (건강보험)</b>: 3.545%</span>
-                                    <span class="text-[11px] text-teal-700">(လုပ်ခလစာ၏ ၃.၅၄၅%)</span>
-                                </div>
-                                <div class="flex justify-between p-2 bg-white rounded-xl border border-teal-100">
-                                    <span><b>၃။ ရေရှည်စောင့်ရှောက်မှု (장기요양)</b>: 12.95%</span>
-                                    <span class="text-[11px] text-teal-700">(ကျန်းမာရေးအာမခံ၏ ၁၂.၉၅%)</span>
-                                </div>
-                                <div class="flex justify-between p-2 bg-white rounded-xl border border-teal-100">
-                                    <span><b>၄။ အလုပ်အကိုင်အာမခံ (고용보험)</b>: 0.9%</span>
-                                    <span class="text-[11px] text-teal-700">(လုပ်ခလစာ၏ ၀.၉%)</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 shadow-xs">
-                            <div class="font-bold text-slate-800 text-sm mb-1.5 flex items-center gap-2">
-                                <span class="w-6 h-6 rounded-lg bg-slate-700 text-white flex items-center justify-center text-xs">🏠</span>
-                                <span>အဆောင်ခနှင့် ထမင်းဖိုး ပုံသေနုတ်ငွေ (Dormitory & Meal Fee)</span>
-                            </div>
-                            <p class="text-xs text-slate-600 leading-relaxed">
-                                ကုမ္ပဏီမှ လစဉ် လစာထဲမှ ပုံသေနုတ်ယူသည့် အဆောင်ခ သို့မဟုတ် ထမင်းဖိုး ပမာဏကို Settings ကဏ္ဍ (၄) တွင် ထည့်သွင်းထားပါက လစာရှင်းတမ်းတွင် အလိုအလျောက် ထည့်သွင်းနုတ်ယူပေးမည် ဖြစ်ပါသည်။
-                            </p>
-                        </div>
-
-                        <div class="p-3.5 bg-indigo-50/70 rounded-2xl border border-indigo-200 shadow-xs">
-                            <div class="font-bold text-indigo-900 text-sm mb-1.5 flex items-center gap-2">
-                                <span class="w-6 h-6 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-xs">🧾</span>
-                                <span>လစဉ်လစာ 明細 (Payslip) ရှင်းတမ်း ထုတ်ယူခြင်း</span>
-                            </div>
-                            <p class="text-xs text-indigo-800 leading-relaxed">
-                                မှတ်တမ်းစာမျက်နှာ (Record View) ရှိ လအလိုက် <b>"ရှင်းတမ်း"</b> ခလုတ်ကို နှိပ်ပါက စုစုပေါင်းရငွေ၊ အာမခံနှင့် အခွန်ဖြတ်ငွေများ၊ လက်ထဲအသားတင်ရရှိမည့်ငွေ (Net Pay) နှင့် မိဘထံလွှဲမည့်ငွေများကို ရှင်းတမ်းစာရွက်ပုံစံဖြင့် ပြည့်စုံစွာ ကြည့်ရှုနိုင်ပါသည်။
-                            </p>
-                        </div>
-                    </div>
-                `,
-                backup: `
-                    <div class="space-y-3.5">
-                        <div class="p-3.5 bg-emerald-50 rounded-2xl border border-emerald-200 shadow-xs">
-                            <div class="font-bold text-emerald-900 text-sm mb-2 flex items-center gap-2">
-                                <span class="w-6 h-6 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-xs">📁</span>
-                                <span>ဖုန်းထဲသို့ Excel / CSV / JSON ထုတ်ယူသိမ်းဆည်းနည်း</span>
-                            </div>
-                            <p class="text-xs text-emerald-800 leading-relaxed mb-2">
-                                Settings ကဏ္ဍ (၆) ရှိ ခလုတ်များကို အသုံးပြု၍ သင့်ဒေတာများကို သိမ်းဆည်းနိုင်ပါသည်:
-                            </p>
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
-                                <div class="p-2 bg-white rounded-xl border border-emerald-100 text-center">
-                                    <b class="text-emerald-700">Export Excel (.xlsx)</b>
-                                    <p class="text-[10px] text-slate-500 mt-0.5">Excel ဖြင့် ဖွင့်ဖတ်နိုင်သော ဇယား</p>
-                                </div>
-                                <div class="p-2 bg-white rounded-xl border border-emerald-100 text-center">
-                                    <b class="text-emerald-700">Export CSV (.csv)</b>
-                                    <p class="text-[10px] text-slate-500 mt-0.5">Spreadsheet စာရင်းဖိုင်</p>
-                                </div>
-                                <div class="p-2 bg-white rounded-xl border border-emerald-100 text-center">
-                                    <b class="text-emerald-700">Backup JSON</b>
-                                    <p class="text-[10px] text-slate-500 mt-0.5">ဖုန်းပြောင်းလျှင် ပြန်သွင်းနိုင်သည့်ဖိုင်</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="p-3.5 bg-amber-50 rounded-2xl border border-amber-200 shadow-xs">
-                            <div class="font-bold text-amber-900 text-sm mb-1.5 flex items-center gap-2">
-                                <span class="w-6 h-6 rounded-lg bg-amber-600 text-white flex items-center justify-center text-xs">☁️</span>
-                                <span>Google Drive Cloud Backup (တိုက်ရိုက်သိမ်းဆည်းခြင်း)</span>
-                            </div>
-                            <p class="text-xs text-amber-800 leading-relaxed">
-                                Google အကောင့်ဖြင့် ဝင်ရောက်အသုံးပြုပါက သင့်ကိုယ်ပိုင် Google Drive (App Data) ထဲသို့ <b>"Drive သို့ သိမ်းမည်"</b> ခလုတ်ဖြင့် လုံခြုံစွာ Backup သိမ်းဆည်းနိုင်ပြီး ဖုန်းပျောက်ခြင်း၊ စက်လဲခြင်းများ ကြုံတွေ့ရပါက <b>"Drive မှ ပြန်ယူမည်"</b> ဖြင့် ချက်ချင်း ပြန်လည်ရယူနိုင်ပါသည်။
-                            </p>
-                        </div>
-
-                        <div class="p-3.5 bg-indigo-50/70 rounded-2xl border border-indigo-200 shadow-xs">
-                            <div class="font-bold text-indigo-900 text-sm mb-1.5 flex items-center gap-2">
-                                <span class="w-6 h-6 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-xs">⏰</span>
-                                <span>လစဉ် အလိုအလျောက် Backup သိမ်းဆည်းခြင်း (Auto Backup)</span>
-                            </div>
-                            <p class="text-xs text-indigo-800 leading-relaxed">
-                                Settings တွင် Auto Backup ဖွင့်ထားပါက လစဉ် မိမိစိတ်ကြိုက်သတ်မှတ်ထားသော နေ့ရက်နှင့် အချိန် (ဥပမာ: လကုန် ၃၁ ရက်၊ ည ၂၂:၀၀) တွင် ဖုန်းထဲသို့ အလိုအလျောက် Backup ဖိုင် သိမ်းဆည်းပေးမည် ဖြစ်ပါသည်။
-                            </p>
-                        </div>
-                    </div>
-                `
-            },
-            ko: {
-                user_guide_banner_title: "앱 사용 가이드",
-                user_guide_banner_sub: "급여 계산 방식 및 기능별 상세 사용법",
-                user_guide_btn_label: "가이드 보기",
-                guide_modal_title: "급여 계산기 사용 설명서",
-                guide_modal_sub: "Smart Salary Tracker 단계별 상세 기능 안내",
-                tab_worklog_text: "1. 근무 기록 방법",
-                tab_calendar_text: "2. 달력 및 월별 요약",
-                tab_salary_text: "3. 급여 및 4대보험",
-                tab_backup_text: "4. 백업 및 드라이브",
-                guide_close_btn_text: "확인했습니다 (닫기)",
-                worklog: `
-                    <div class="space-y-3.5">
-                        <div class="p-3.5 bg-amber-50 rounded-2xl border border-amber-200 shadow-xs">
-                            <div class="font-bold text-amber-900 text-sm mb-1.5 flex items-center gap-2">
-                                <span class="w-6 h-6 rounded-lg bg-amber-500 text-white flex items-center justify-center text-xs">⚡</span>
-                                <span>원클릭 오늘 근무 빠른 등록 (Quick Add)</span>
-                            </div>
-                            <p class="text-xs text-amber-800 leading-relaxed">
-                                홈 화면의 <b>"⚡ 오늘 근무 빠른 등록"</b> 버튼을 누르면 설정 메뉴에서 지정한 기본 근무 시간(예: 08:00 ~ 17:00)으로 오늘 날짜의 근무가 원클릭으로 간편하게 기록됩니다.
-                            </p>
-                        </div>
-
-                        <div class="p-3.5 bg-blue-50/70 rounded-2xl border border-blue-200 shadow-xs">
-                            <div class="font-bold text-blue-900 text-sm mb-2 flex items-center gap-2">
-                                <span class="w-6 h-6 rounded-lg bg-blue-600 text-white flex items-center justify-center text-xs">🎯</span>
-                                <span>E-9 맞춤 교대근무 프리셋 (Shift Presets)</span>
-                            </div>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                                <div class="p-2.5 bg-white rounded-xl border border-emerald-200">
-                                    <span class="font-bold text-emerald-800">☀️ 주간근무 (Day Shift)</span>
-                                    <p class="text-[11px] text-slate-600 mt-0.5">08:00 ~ 17:00 (기본 8시간, 점심시간 1시간 자동 공제)</p>
-                                </div>
-                                <div class="p-2.5 bg-white rounded-xl border border-amber-200">
-                                    <span class="font-bold text-amber-800">⚡ 주간 + 연장 (Day + OT)</span>
-                                    <p class="text-[11px] text-slate-600 mt-0.5">08:00 ~ 20:00 (기본 8h + 연장 2.5h, 저녁식사 30분 공제)</p>
-                                </div>
-                                <div class="p-2.5 bg-white rounded-xl border border-indigo-200">
-                                    <span class="font-bold text-indigo-800">🌙 야간근무 (Night Shift)</span>
-                                    <p class="text-[11px] text-slate-600 mt-0.5">20:00 ~ 05:00 (기본 8시간 + 야간근로수당 0.5배 가산)</p>
-                                </div>
-                                <div class="p-2.5 bg-white rounded-xl border border-purple-200">
-                                    <span class="font-bold text-purple-800">✨ 야간 + 연장 (Night + OT)</span>
-                                    <p class="text-[11px] text-slate-600 mt-0.5">20:00 ~ 08:00 (기본 8h + 연장 2.5h + 야간근로수당)</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="p-3.5 bg-emerald-50/70 rounded-2xl border border-emerald-200 shadow-xs">
-                            <div class="font-bold text-emerald-900 text-sm mb-1.5 flex items-center gap-2">
-                                <span class="w-6 h-6 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-xs">☕</span>
-                                <span>식사 및 휴게시간 자동 공제 (Break Deductions)</span>
-                            </div>
-                            <p class="text-xs text-emerald-800 leading-relaxed">
-                                설정 섹션 (3)에서 사업장 기준에 맞춰 점심, 저녁, 야간 식사 및 휴식 시간을 설정해두면 근무 등록 시 실근로시간에서 자동으로 정확히 차감 계산됩니다.
-                            </p>
-                        </div>
-                    </div>
-                `,
-                calendar: `
-                    <div class="space-y-3.5">
-                        <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 shadow-xs">
-                            <div class="font-bold text-slate-800 text-sm mb-2 flex items-center gap-2">
-                                <span class="w-6 h-6 rounded-lg bg-slate-700 text-white flex items-center justify-center text-xs">🎨</span>
-                                <span>달력 색상 및 배지 안내</span>
-                            </div>
-                            <div class="grid grid-cols-2 gap-2 text-xs">
-                                <div class="flex items-center gap-2 p-2 bg-white rounded-xl border border-emerald-200">
-                                    <span class="w-3.5 h-3.5 rounded-full bg-emerald-500 shrink-0"></span>
-                                    <div><b class="text-emerald-800">초록색</b><p class="text-[10px] text-slate-500">기본 소정근로시간</p></div>
-                                </div>
-                                <div class="flex items-center gap-2 p-2 bg-white rounded-xl border border-amber-200">
-                                    <span class="w-3.5 h-3.5 rounded-full bg-amber-500 shrink-0"></span>
-                                    <div><b class="text-amber-800">주황색</b><p class="text-[10px] text-slate-500">연장근로 OT (1.5배)</p></div>
-                                </div>
-                                <div class="flex items-center gap-2 p-2 bg-white rounded-xl border border-indigo-200">
-                                    <span class="w-3.5 h-3.5 rounded-full bg-indigo-500 shrink-0"></span>
-                                    <div><b class="text-indigo-800">보라색</b><p class="text-[10px] text-slate-500">야간수당 (22:00~06:00)</p></div>
-                                </div>
-                                <div class="flex items-center gap-2 p-2 bg-white rounded-xl border border-purple-200">
-                                    <span class="w-3.5 h-3.5 rounded-full bg-purple-500 shrink-0"></span>
-                                    <div><b class="text-purple-800">휴가 / 휴일</b><p class="text-[10px] text-slate-500">연차유급휴가 또는 유급휴일</p></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `,
-                salary: `
-                    <div class="space-y-3.5">
-                        <div class="p-3.5 bg-teal-50 rounded-2xl border border-teal-200 shadow-xs">
-                            <div class="font-bold text-teal-900 text-sm mb-2 flex items-center gap-2">
-                                <span class="w-6 h-6 rounded-lg bg-teal-600 text-white flex items-center justify-center text-xs">🏛️</span>
-                                <span>대한민국 4대 보험 공제율</span>
-                            </div>
-                            <div class="space-y-1.5 text-xs text-teal-950">
-                                <div class="flex justify-between p-2 bg-white rounded-xl border border-teal-100">
-                                    <span><b>1. 국민연금</b>: 4.5%</span>
-                                    <span class="text-[11px] text-teal-700">(근로자 부담분)</span>
-                                </div>
-                                <div class="flex justify-between p-2 bg-white rounded-xl border border-teal-100">
-                                    <span><b>2. 건강보험</b>: 3.545%</span>
-                                    <span class="text-[11px] text-teal-700">(월급여의 3.545%)</span>
-                                </div>
-                                <div class="flex justify-between p-2 bg-white rounded-xl border border-teal-100">
-                                    <span><b>3. 장기요양보험</b>: 12.95%</span>
-                                    <span class="text-[11px] text-teal-700">(건강보험료의 12.95%)</span>
-                                </div>
-                                <div class="flex justify-between p-2 bg-white rounded-xl border border-teal-100">
-                                    <span><b>4. 고용보험</b>: 0.9%</span>
-                                    <span class="text-[11px] text-teal-700">(월급여의 0.9%)</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `,
-                backup: `
-                    <div class="space-y-3.5">
-                        <div class="p-3.5 bg-emerald-50 rounded-2xl border border-emerald-200 shadow-xs">
-                            <div class="font-bold text-emerald-900 text-sm mb-1.5 flex items-center gap-2">
-                                <span class="w-6 h-6 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-xs">📁</span>
-                                <span>엑셀(Excel) 및 데이터 내보내기</span>
-                            </div>
-                            <p class="text-xs text-emerald-800 leading-relaxed">
-                                설정 섹션 (6)에서 언제든지 월별 급여 데이터를 엑셀(.xlsx), CSV 스프레드시트 또는 JSON 백업 파일로 스마트폰에 다운로드할 수 있습니다.
-                            </p>
-                        </div>
-                    </div>
-                `
-            },
-            en: {
-                user_guide_banner_title: "App User Guide",
-                user_guide_banner_sub: "Salary calculation rules & step-by-step instructions",
-                user_guide_btn_label: "Open Guide",
-                guide_modal_title: "Salary Tracker User Manual",
-                guide_modal_sub: "Complete step-by-step walkthrough for all features",
-                tab_worklog_text: "1. Work Logs",
-                tab_calendar_text: "2. Calendar & Summary",
-                tab_salary_text: "3. Salary & Insurances",
-                tab_backup_text: "4. Backup & Drive",
-                guide_close_btn_text: "Got It (Close)",
-                worklog: `
-                    <div class="space-y-3.5">
-                        <div class="p-3.5 bg-amber-50 rounded-2xl border border-amber-200 shadow-xs">
-                            <div class="font-bold text-amber-900 text-sm mb-1.5 flex items-center gap-2">
-                                <span class="w-6 h-6 rounded-lg bg-amber-500 text-white flex items-center justify-center text-xs">⚡</span>
-                                <span>1-Click Quick Add Today</span>
-                            </div>
-                            <p class="text-xs text-amber-800 leading-relaxed">
-                                Click the <b>"⚡ Quick Add Today"</b> button on the home screen to instantly log today's working hours using your configured default schedule (e.g. 08:00 ~ 17:00).
-                            </p>
-                        </div>
-
-                        <div class="p-3.5 bg-blue-50/70 rounded-2xl border border-blue-200 shadow-xs">
-                            <div class="font-bold text-blue-900 text-sm mb-2 flex items-center gap-2">
-                                <span class="w-6 h-6 rounded-lg bg-blue-600 text-white flex items-center justify-center text-xs">🎯</span>
-                                <span>E-9 Factory Shift Presets</span>
-                            </div>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                                <div class="p-2.5 bg-white rounded-xl border border-emerald-200">
-                                    <span class="font-bold text-emerald-800">☀️ Day Shift</span>
-                                    <p class="text-[11px] text-slate-600 mt-0.5">08:00 ~ 17:00 (8h base, 1h lunch deducted)</p>
-                                </div>
-                                <div class="p-2.5 bg-white rounded-xl border border-amber-200">
-                                    <span class="font-bold text-amber-800">⚡ Day + OT</span>
-                                    <p class="text-[11px] text-slate-600 mt-0.5">08:00 ~ 20:00 (8h base + 2.5h OT, dinner break deducted)</p>
-                                </div>
-                                <div class="p-2.5 bg-white rounded-xl border border-indigo-200">
-                                    <span class="font-bold text-indigo-800">🌙 Night Shift</span>
-                                    <p class="text-[11px] text-slate-600 mt-0.5">20:00 ~ 05:00 (8h base + night allowance bonus 0.5x)</p>
-                                </div>
-                                <div class="p-2.5 bg-white rounded-xl border border-purple-200">
-                                    <span class="font-bold text-purple-800">✨ Night + OT</span>
-                                    <p class="text-[11px] text-slate-600 mt-0.5">20:00 ~ 08:00 (8h base + 2.5h OT + night allowance)</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="p-3.5 bg-emerald-50/70 rounded-2xl border border-emerald-200 shadow-xs">
-                            <div class="font-bold text-emerald-900 text-sm mb-1.5 flex items-center gap-2">
-                                <span class="w-6 h-6 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-xs">☕</span>
-                                <span>Automatic Break Deductions</span>
-                            </div>
-                            <p class="text-xs text-emerald-800 leading-relaxed">
-                                Configure your factory's exact break periods in Settings Section 3 (lunch, dinner, midnight meal, and morning breaks). They are automatically deducted from work hours so you never have to calculate manually.
-                            </p>
-                        </div>
-                    </div>
-                `,
-                calendar: `
-                    <div class="space-y-3.5">
-                        <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 shadow-xs">
-                            <div class="font-bold text-slate-800 text-sm mb-2 flex items-center gap-2">
-                                <span class="w-6 h-6 rounded-lg bg-slate-700 text-white flex items-center justify-center text-xs">🎨</span>
-                                <span>Calendar Color Badges</span>
-                            </div>
-                            <div class="grid grid-cols-2 gap-2 text-xs">
-                                <div class="flex items-center gap-2 p-2 bg-white rounded-xl border border-emerald-200">
-                                    <span class="w-3.5 h-3.5 rounded-full bg-emerald-500 shrink-0"></span>
-                                    <div><b class="text-emerald-800">Green</b><p class="text-[10px] text-slate-500">Regular Base Hours</p></div>
-                                </div>
-                                <div class="flex items-center gap-2 p-2 bg-white rounded-xl border border-amber-200">
-                                    <span class="w-3.5 h-3.5 rounded-full bg-amber-500 shrink-0"></span>
-                                    <div><b class="text-amber-800">Orange</b><p class="text-[10px] text-slate-500">Overtime OT (1.5x pay)</p></div>
-                                </div>
-                                <div class="flex items-center gap-2 p-2 bg-white rounded-xl border border-indigo-200">
-                                    <span class="w-3.5 h-3.5 rounded-full bg-indigo-500 shrink-0"></span>
-                                    <div><b class="text-indigo-800">Purple</b><p class="text-[10px] text-slate-500">Night Shift (22:00~06:00)</p></div>
-                                </div>
-                                <div class="flex items-center gap-2 p-2 bg-white rounded-xl border border-purple-200">
-                                    <span class="w-3.5 h-3.5 rounded-full bg-purple-500 shrink-0"></span>
-                                    <div><b class="text-purple-800">Leave / Holiday</b><p class="text-[10px] text-slate-500">Annual leave or paid holiday</p></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `,
-                salary: `
-                    <div class="space-y-3.5">
-                        <div class="p-3.5 bg-teal-50 rounded-2xl border border-teal-200 shadow-xs">
-                            <div class="font-bold text-teal-900 text-sm mb-2 flex items-center gap-2">
-                                <span class="w-6 h-6 rounded-lg bg-teal-600 text-white flex items-center justify-center text-xs">🏛️</span>
-                                <span>Korea 4 Major Social Insurances</span>
-                            </div>
-                            <div class="space-y-1.5 text-xs text-teal-950">
-                                <div class="flex justify-between p-2 bg-white rounded-xl border border-teal-100">
-                                    <span><b>1. National Pension</b>: 4.5%</span>
-                                    <span class="text-[11px] text-teal-700">(by nationality agreement)</span>
-                                </div>
-                                <div class="flex justify-between p-2 bg-white rounded-xl border border-teal-100">
-                                    <span><b>2. Health Insurance</b>: 3.545%</span>
-                                    <span class="text-[11px] text-teal-700">(3.545% of salary)</span>
-                                </div>
-                                <div class="flex justify-between p-2 bg-white rounded-xl border border-teal-100">
-                                    <span><b>3. Long-term Care</b>: 12.95%</span>
-                                    <span class="text-[11px] text-teal-700">(12.95% of health insurance)</span>
-                                </div>
-                                <div class="flex justify-between p-2 bg-white rounded-xl border border-teal-100">
-                                    <span><b>4. Employment Insurance</b>: 0.9%</span>
-                                    <span class="text-[11px] text-teal-700">(0.9% of salary)</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `,
-                backup: `
-                    <div class="space-y-3.5">
-                        <div class="p-3.5 bg-emerald-50 rounded-2xl border border-emerald-200 shadow-xs">
-                            <div class="font-bold text-emerald-900 text-sm mb-1.5 flex items-center gap-2">
-                                <span class="w-6 h-6 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-xs">📁</span>
-                                <span>Export to Excel, CSV & JSON</span>
-                            </div>
-                            <p class="text-xs text-emerald-800 leading-relaxed">
-                                Easily export your monthly salary data into formatted Excel (.xlsx) spreadsheets, CSV files, or encrypted backup JSON files from Settings Section 6.
-                            </p>
-                        </div>
-                    </div>
-                `
-            },
-            th: {
-                user_guide_banner_title: "คู่มือการใช้งานแอป",
-                user_guide_banner_sub: "วิธีคำนวณเงินเดือนและคำแนะนำทีละขั้นตอน",
-                user_guide_btn_label: "ดูคู่มือ",
-                guide_modal_title: "คู่มือการใช้งาน Salary Tracker",
-                guide_modal_sub: "คำอธิบายฟังก์ชันการทำงานอย่างละเอียด",
-                tab_worklog_text: "1. บันทึกเวลาทำงาน",
-                tab_calendar_text: "2. ปฏิทินและสรุป",
-                tab_salary_text: "3. เงินเดือนและประกัน",
-                tab_backup_text: "4. การสำรองข้อมูล",
-                guide_close_btn_text: "เข้าใจแล้ว (ปิด)",
-                worklog: `
-                    <div class="space-y-3.5">
-                        <div class="p-3.5 bg-amber-50 rounded-2xl border border-amber-200 shadow-xs">
-                            <div class="font-bold text-amber-900 text-sm mb-1.5 flex items-center gap-2">
-                                <span class="w-6 h-6 rounded-lg bg-amber-500 text-white flex items-center justify-center text-xs">⚡</span>
-                                <span>บันทึกงานวันนี้ด้วยคลิกเดียว (Quick Add)</span>
-                            </div>
-                            <p class="text-xs text-amber-800 leading-relaxed">
-                                กดปุ่ม <b>"⚡ บันทึกงานวันนี้ด่วน"</b> บนหน้าจอหลักเพื่อบันทึกเวลาทำงานของวันนี้ทันทีตามเวลามาตรฐานที่คุณตั้งไว้ (เช่น 08:00 ~ 17:00)
-                            </p>
-                        </div>
-                    </div>
-                `,
-                calendar: `
-                    <div class="space-y-3.5">
-                        <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 shadow-xs">
-                            <div class="font-bold text-slate-800 text-sm mb-2 flex items-center gap-2">
-                                <span class="w-6 h-6 rounded-lg bg-slate-700 text-white flex items-center justify-center text-xs">🎨</span>
-                                <span>ความหมายของสีบนปฏิทิน</span>
-                            </div>
-                            <p class="text-xs text-slate-600">สีเขียว = เวลาทำงานปกติ, สีส้ม = โอที OT (1.5 เท่า), สีม่วง = ค่ากะดึก 야간 (22:00~06:00), สีแดง = วันหยุด</p>
-                        </div>
-                    </div>
-                `,
-                salary: `
-                    <div class="space-y-3.5">
-                        <div class="p-3.5 bg-teal-50 rounded-2xl border border-teal-200 shadow-xs">
-                            <div class="font-bold text-teal-900 text-sm mb-2 flex items-center gap-2">
-                                <span class="w-6 h-6 rounded-lg bg-teal-600 text-white flex items-center justify-center text-xs">🏛️</span>
-                                <span>ประกันสังคม 4 ประเภทในเกาหลี</span>
-                            </div>
-                            <p class="text-xs text-teal-800">ระบบจะคำนวณหักเงินประกันสุขภาพ บำนาญ และประกันการจ้างงานโดยอัตโนมัติ</p>
-                        </div>
-                    </div>
-                `,
-                backup: `
-                    <div class="space-y-3.5">
-                        <div class="p-3.5 bg-emerald-50 rounded-2xl border border-emerald-200 shadow-xs">
-                            <div class="font-bold text-emerald-900 text-sm mb-1.5 flex items-center gap-2">
-                                <span class="w-6 h-6 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-xs">📁</span>
-                                <span>ส่งออกข้อมูล Excel และ Google Drive</span>
-                            </div>
-                            <p class="text-xs text-emerald-800">สามารถดาวน์โหลดไฟล์ Excel (.xlsx) หรือสำรองข้อมูลขึ้น Google Drive ได้ในหมวดที่ 6</p>
-                        </div>
-                    </div>
-                `
-            },
-            vi: {
-                user_guide_banner_title: "Hướng dẫn sử dụng",
-                user_guide_banner_sub: "Cách tính lương và hướng dẫn từng bước",
-                user_guide_btn_label: "Xem hướng dẫn",
-                guide_modal_title: "Sổ tay hướng dẫn Salary Tracker",
-                guide_modal_sub: "Giải thích chi tiết từng tính năng của ứng dụng",
-                tab_worklog_text: "1. Ghi giờ làm việc",
-                tab_calendar_text: "2. Lịch & Tổng quan",
-                tab_salary_text: "3. Lương & Bảo hiểm",
-                tab_backup_text: "4. Sao lưu & Drive",
-                guide_close_btn_text: "Đã hiểu (Đóng)",
-                worklog: `
-                    <div class="space-y-3.5">
-                        <div class="p-3.5 bg-amber-50 rounded-2xl border border-amber-200 shadow-xs">
-                            <div class="font-bold text-amber-900 text-sm mb-1.5 flex items-center gap-2">
-                                <span class="w-6 h-6 rounded-lg bg-amber-500 text-white flex items-center justify-center text-xs">⚡</span>
-                                <span>Ghi nhanh giờ làm hôm nay (Quick Add)</span>
-                            </div>
-                            <p class="text-xs text-amber-800 leading-relaxed">
-                                Nhấn nút <b>"⚡ Ghi nhanh hôm nay"</b> trên màn hình chính để lưu ngay ca làm việc hôm nay theo giờ mặc định đã cài đặt.
-                            </p>
-                        </div>
-                    </div>
-                `,
-                calendar: `
-                    <div class="space-y-3.5">
-                        <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 shadow-xs">
-                            <div class="font-bold text-slate-800 text-sm mb-2 flex items-center gap-2">
-                                <span class="w-6 h-6 rounded-lg bg-slate-700 text-white flex items-center justify-center text-xs">🎨</span>
-                                <span>Màu sắc biểu thị trên lịch</span>
-                            </div>
-                            <p class="text-xs text-slate-600">Xanh lá = Giờ hành chính, Cam = Tăng ca OT (x1.5), Tím = Ca đêm 야간, Đỏ = Ngày lễ/nghỉ có lương.</p>
-                        </div>
-                    </div>
-                `,
-                salary: `
-                    <div class="space-y-3.5">
-                        <div class="p-3.5 bg-teal-50 rounded-2xl border border-teal-200 shadow-xs">
-                            <div class="font-bold text-teal-900 text-sm mb-2 flex items-center gap-2">
-                                <span class="w-6 h-6 rounded-lg bg-teal-600 text-white flex items-center justify-center text-xs">🏛️</span>
-                                <span>4 loại bảo hiểm tại Hàn Quốc</span>
-                            </div>
-                            <p class="text-xs text-teal-800">Tự động trừ lương hưu quốc dân, bảo hiểm y tế, chăm sóc dài hạn và bảo hiểm thất nghiệp theo đúng luật.</p>
-                        </div>
-                    </div>
-                `,
-                backup: `
-                    <div class="space-y-3.5">
-                        <div class="p-3.5 bg-emerald-50 rounded-2xl border border-emerald-200 shadow-xs">
-                            <div class="font-bold text-emerald-900 text-sm mb-1.5 flex items-center gap-2">
-                                <span class="w-6 h-6 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-xs">📁</span>
-                                <span>Xuất Excel & Sao lưu Google Drive</span>
-                            </div>
-                            <p class="text-xs text-emerald-800">Dễ dàng xuất bảng lương ra file Excel (.xlsx), CSV hoặc sao lưu dữ liệu lên Google Drive an toàn.</p>
-                        </div>
-                    </div>
-                `
-            },
-            id: {
-                user_guide_banner_title: "Panduan Penggunaan",
-                user_guide_banner_sub: "Cara hitung gaji & petunjuk penggunaan langkah demi langkah",
-                user_guide_btn_label: "Buka Panduan",
-                guide_modal_title: "Panduan Pengguna Salary Tracker",
-                guide_modal_sub: "Penjelasan lengkap fitur dan penggunaan aplikasi",
-                tab_worklog_text: "1. Catat Jam Kerja",
-                tab_calendar_text: "2. Kalender & Ringkasan",
-                tab_salary_text: "3. Gaji & Asuransi",
-                tab_backup_text: "4. Cadangan & Drive",
-                guide_close_btn_text: "Mengerti (Tutup)",
-                worklog: `
-                    <div class="space-y-3.5">
-                        <div class="p-3.5 bg-amber-50 rounded-2xl border border-amber-200 shadow-xs">
-                            <div class="font-bold text-amber-900 text-sm mb-1.5 flex items-center gap-2">
-                                <span class="w-6 h-6 rounded-lg bg-amber-500 text-white flex items-center justify-center text-xs">⚡</span>
-                                <span>1-Klik Catat Cepat Hari Ini (Quick Add)</span>
-                            </div>
-                            <p class="text-xs text-amber-800 leading-relaxed">
-                                Klik tombol <b>"⚡ Catat Cepat Hari Ini"</b> di beranda untuk langsung menyimpan jam kerja hari ini sesuai jam shift default Anda.
-                            </p>
-                        </div>
-                    </div>
-                `,
-                calendar: `
-                    <div class="space-y-3.5">
-                        <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 shadow-xs">
-                            <div class="font-bold text-slate-800 text-sm mb-2 flex items-center gap-2">
-                                <span class="w-6 h-6 rounded-lg bg-slate-700 text-white flex items-center justify-center text-xs">🎨</span>
-                                <span>Arti Warna & Lencana di Kalender</span>
-                            </div>
-                            <p class="text-xs text-slate-600">Hijau = Jam kerja dasar, Oranye = Lembur OT (x1.5), Ungu = Shift malam 야간, Merah = Hari libur/cuti berbayar.</p>
-                        </div>
-                    </div>
-                `,
-                salary: `
-                    <div class="space-y-3.5">
-                        <div class="p-3.5 bg-teal-50 rounded-2xl border border-teal-200 shadow-xs">
-                            <div class="font-bold text-teal-900 text-sm mb-2 flex items-center gap-2">
-                                <span class="w-6 h-6 rounded-lg bg-teal-600 text-white flex items-center justify-center text-xs">🏛️</span>
-                                <span>4 Asuransi Sosial Utama di Korea</span>
-                            </div>
-                            <p class="text-xs text-teal-800">Menghitung pemotongan pensiun nasional, asuransi kesehatan, perawatan lansia, dan asuransi ketenagakerjaan secara otomatis.</p>
-                        </div>
-                    </div>
-                `,
-                backup: `
-                    <div class="space-y-3.5">
-                        <div class="p-3.5 bg-emerald-50 rounded-2xl border border-emerald-200 shadow-xs">
-                            <div class="font-bold text-emerald-900 text-sm mb-1.5 flex items-center gap-2">
-                                <span class="w-6 h-6 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-xs">📁</span>
-                                <span>Ekspor Excel & Cadangan Google Drive</span>
-                            </div>
-                            <p class="text-xs text-emerald-800">Ekspor rincian jam kerja ke Excel (.xlsx) atau simpan cadangan aman di Google Drive pribadi Anda.</p>
-                        </div>
-                    </div>
-                `
-            }
-        };
-
-        let currentGuideTab = 'worklog';
-
-        const renderGuideContent = (tab = null, lang = null) => {
-            if (tab) currentGuideTab = tab;
-            const currentL = lang || getCurrentLang();
-            const langContent = GUIDE_CONTENT[currentL] || GUIDE_CONTENT['my'];
-            const contentHtml = langContent[currentGuideTab] || langContent['worklog'];
-            const container = getElement('guide-tab-content');
-            if (container) {
-                container.innerHTML = contentHtml;
-            }
-
-            // Update active tab styles
-            document.querySelectorAll('.guide-tab-btn').forEach(btn => {
-                const bTab = btn.getAttribute('data-tab');
-                if (bTab === currentGuideTab) {
-                    btn.className = 'guide-tab-btn flex-1 py-2 px-3 rounded-xl transition text-center whitespace-nowrap bg-white text-blue-600 shadow-sm border border-slate-200 font-bold';
-                } else {
-                    btn.className = 'guide-tab-btn flex-1 py-2 px-3 rounded-xl transition text-center whitespace-nowrap text-slate-600 hover:bg-white/60 font-semibold';
-                }
-            });
-            if (window.lucide) { window.lucide.createIcons(); }
-        };
-
-        // Initialize User Guide Modal Event Listeners
-        const openGuideBtn = getElement('open-user-guide-btn');
-        const guideModal = getElement('user-guide-modal');
-        const closeGuideBtn = getElement('close-user-guide-btn');
-        const closeGuideFooterBtn = getElement('close-user-guide-footer-btn');
-
-        if (openGuideBtn && guideModal) {
-            openGuideBtn.addEventListener('click', () => {
-                renderGuideContent(currentGuideTab);
-                guideModal.classList.remove('hidden');
-                if (window.lucide) { window.lucide.createIcons(); }
-            });
-
-            const closeGuide = () => guideModal.classList.add('hidden');
-            if (closeGuideBtn) closeGuideBtn.addEventListener('click', closeGuide);
-            if (closeGuideFooterBtn) closeGuideFooterBtn.addEventListener('click', closeGuide);
-
-            guideModal.addEventListener('click', (e) => {
-                if (e.target === guideModal) closeGuide();
-            });
-
-            document.querySelectorAll('.guide-tab-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const tab = btn.getAttribute('data-tab');
-                    renderGuideContent(tab);
-                });
-            });
-        }
-
-    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="https://npmcdn.com/flatpickr/dist/themes/material_blue.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1591,9 +888,19 @@
                 <div id="user-profile-section" class="mb-5 p-3.5 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl border border-blue-100 flex items-center justify-between">
                     <div class="flex items-center gap-3">
                         <div class="w-11 h-11 bg-blue-600 rounded-full flex items-center justify-center text-white text-lg font-bold shadow-sm" id="user-initial">U</div>
+                        <div>
+                            <p class="text-[10px] text-blue-600 font-semibold uppercase tracking-wider">Logged in as</p>
+                            <h3 id="user-display-name" class="text-sm font-bold text-slate-900 leading-tight">User Name</h3>
+                            <p id="user-email" class="text-xs text-slate-500">user@email.com</p>
+                        </div>
+                    </div>
+                    <button id="sign-out-btn" class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Sign Out">
+                        <i data-lucide="log-out" class="w-5 h-5"></i>
+                    </button>
+                </div>
 
                 <!-- User Guide Banner Card -->
-                <div class="mb-4 p-4 bg-gradient-to-r from-blue-600 via-indigo-600 to-indigo-700 text-white rounded-2xl shadow-md border border-blue-400/30 flex items-center justify-between gap-3">
+                <div class="mb-5 p-4 bg-gradient-to-r from-blue-600 via-indigo-600 to-indigo-700 text-white rounded-2xl shadow-md border border-blue-400/30 flex items-center justify-between gap-3">
                     <div class="flex items-center gap-3 min-w-0">
                         <div class="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0 text-white shadow-inner">
                             <i data-lucide="book-open" class="w-6 h-6 text-amber-300"></i>
@@ -1603,19 +910,9 @@
                             <p id="user-guide-card-sub" class="text-xs text-blue-100">လုပ်ခလစာတွက်ချက်နည်းနှင့် အသုံးပြုပုံ အဆင့်ဆင့်</p>
                         </div>
                     </div>
-                    <button type="button" id="open-user-guide-btn" class="inline-flex items-center gap-1.5 bg-white text-blue-700 hover:bg-amber-50 hover:text-amber-700 font-extrabold px-3.5 py-2.5 rounded-xl text-xs shadow-md transition-all active:scale-95 whitespace-nowrap cursor-pointer">
+                    <button type="button" id="open-user-guide-btn" onclick="openUserGuideModal()" class="inline-flex items-center gap-1.5 bg-white text-blue-700 hover:bg-amber-50 hover:text-amber-700 font-extrabold px-3.5 py-2.5 rounded-xl text-xs shadow-md transition-all active:scale-95 whitespace-nowrap cursor-pointer">
                         <i data-lucide="sparkles" class="w-4 h-4 text-amber-500"></i>
                         <span id="user-guide-btn-label">လမ်းညွှန်ဖတ်ရန်</span>
-                    </button>
-                </div>
-                        <div>
-                            <p class="text-[10px] text-blue-600 font-semibold uppercase tracking-wider">Logged in as</p>
-                            <h3 id="user-display-name" class="text-sm font-bold text-slate-900 leading-tight">User Name</h3>
-                            <p id="user-email" class="text-xs text-slate-500">user@email.com</p>
-                        </div>
-                    </div>
-                    <button id="sign-out-btn" class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Sign Out">
-                        <i data-lucide="log-out" class="w-5 h-5"></i>
                     </button>
                 </div>
 
@@ -5264,23 +4561,23 @@
                     <p id="guide-modal-sub" class="text-xs text-blue-100">Smart Salary Tracker အသုံးပြုပုံ အဆင့်ဆင့် ရှင်းလင်းချက်</p>
                 </div>
             </div>
-            <button type="button" id="close-user-guide-btn" class="p-2 rounded-full hover:bg-white/20 text-white transition-colors cursor-pointer">
+            <button type="button" id="close-user-guide-btn" onclick="closeUserGuideModal()" class="p-2 rounded-full hover:bg-white/20 text-white transition-colors cursor-pointer">
                 <i data-lucide="x" class="w-5 h-5"></i>
             </button>
         </div>
 
         <!-- Navigation Tabs -->
         <div class="flex border-b border-slate-200 bg-slate-50 overflow-x-auto p-1.5 gap-1.5 text-xs font-bold scrollbar-none">
-            <button type="button" class="guide-tab-btn flex-1 py-2 px-3 rounded-xl transition text-center whitespace-nowrap bg-white text-blue-600 shadow-sm border border-slate-200" data-tab="worklog">
+            <button type="button" class="guide-tab-btn flex-1 py-2 px-3 rounded-xl transition text-center whitespace-nowrap bg-white text-blue-600 shadow-sm border border-slate-200 cursor-pointer" data-tab="worklog" onclick="renderGuideContent('worklog')">
                 <i data-lucide="clock" class="w-3.5 h-3.5 inline mr-1"></i> <span id="tab-worklog-text">၁။ အလုပ်ချိန်မှတ်နည်း</span>
             </button>
-            <button type="button" class="guide-tab-btn flex-1 py-2 px-3 rounded-xl transition text-center whitespace-nowrap text-slate-600 hover:bg-white/60" data-tab="calendar">
+            <button type="button" class="guide-tab-btn flex-1 py-2 px-3 rounded-xl transition text-center whitespace-nowrap text-slate-600 hover:bg-white/60 cursor-pointer" data-tab="calendar" onclick="renderGuideContent('calendar')">
                 <i data-lucide="calendar" class="w-3.5 h-3.5 inline mr-1"></i> <span id="tab-calendar-text">၂။ ပြက္ခဒိန်နှင့် အကျဉ်းချုပ်</span>
             </button>
-            <button type="button" class="guide-tab-btn flex-1 py-2 px-3 rounded-xl transition text-center whitespace-nowrap text-slate-600 hover:bg-white/60" data-tab="salary">
+            <button type="button" class="guide-tab-btn flex-1 py-2 px-3 rounded-xl transition text-center whitespace-nowrap text-slate-600 hover:bg-white/60 cursor-pointer" data-tab="salary" onclick="renderGuideContent('salary')">
                 <i data-lucide="coins" class="w-3.5 h-3.5 inline mr-1"></i> <span id="tab-salary-text">၃။ လစာနှင့် အာမခံ</span>
             </button>
-            <button type="button" class="guide-tab-btn flex-1 py-2 px-3 rounded-xl transition text-center whitespace-nowrap text-slate-600 hover:bg-white/60" data-tab="backup">
+            <button type="button" class="guide-tab-btn flex-1 py-2 px-3 rounded-xl transition text-center whitespace-nowrap text-slate-600 hover:bg-white/60 cursor-pointer" data-tab="backup" onclick="renderGuideContent('backup')">
                 <i data-lucide="database" class="w-3.5 h-3.5 inline mr-1"></i> <span id="tab-backup-text">၄။ Backup & Drive</span>
             </button>
         </div>
@@ -5293,12 +4590,667 @@
         <!-- Footer -->
         <div class="p-3 bg-slate-50 border-t border-slate-200 flex justify-between items-center text-xs">
             <span class="text-slate-400 font-medium">Smart Salary Tracker • User Manual</span>
-            <button type="button" id="close-user-guide-footer-btn" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition shadow cursor-pointer">
+            <button type="button" id="close-user-guide-footer-btn" onclick="closeUserGuideModal()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition shadow cursor-pointer">
                 <span id="guide-close-btn-text">နားလည်ပါပြီ (ပိတ်မည်)</span>
             </button>
         </div>
     </div>
 </div>
 
+<script>
+    // --- RICH VISUAL USER GUIDE DATA & LOGIC ---
+    const GUIDE_CONTENT = {
+            my: {
+                worklog: `
+                    <div class="space-y-3.5">
+                        <div class="p-3.5 bg-amber-50 rounded-2xl border border-amber-200 shadow-xs">
+                            <div class="flex items-center gap-2 font-bold text-amber-900 text-sm mb-1.5">
+                                <span class="w-6 h-6 rounded-lg bg-amber-500 text-white flex items-center justify-center text-xs">⚡</span>
+                                <span>၁-ချက်နှိပ် ယနေ့မှတ်တမ်း အမြန်ထည့်နည်း (Quick Add)</span>
+                            </div>
+                            <p class="text-xs text-amber-800 leading-relaxed">
+                                ပင်မစာမျက်နှာ (Home) ရှိ <b>"⚡ ယနေ့မှတ်တမ်း အမြန်ထည့်မည်"</b> ခလုတ်ကို နှိပ်လိုက်ရုံဖြင့် Settings တွင် သင်သတ်မှတ်ထားသော မူသေအချိန် (ဥပမာ: 08:00 ~ 17:00) ဖြင့် ယနေ့အလုပ်မှတ်တမ်းကို ချက်ချင်း အလွယ်တကူ သိမ်းဆည်းပေးပါသည်။
+                            </p>
+                        </div>
+
+                        <div class="p-3.5 bg-blue-50/70 rounded-2xl border border-blue-200 shadow-xs">
+                            <div class="font-bold text-blue-900 text-sm mb-2 flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-lg bg-blue-600 text-white flex items-center justify-center text-xs">🎯</span>
+                                <span>ကိုရီးယား E-9 အလုပ်ဆိုင်း ခလုတ်များ (Shift Presets)</span>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                                <div class="p-2.5 bg-white rounded-xl border border-emerald-200">
+                                    <span class="font-bold text-emerald-800">☀️ နေ့ဆိုင်း (Day Shift)</span>
+                                    <p class="text-[11px] text-slate-600 mt-0.5">08:00 ~ 17:00 (အခြေခံ ၈ နာရီ၊ နေ့လယ်စာ ၁ နာရီ အလိုအလျောက် နုတ်ပြီး)</p>
+                                </div>
+                                <div class="p-2.5 bg-white rounded-xl border border-amber-200">
+                                    <span class="font-bold text-amber-800">⚡ နေ့ဆိုင်း + OT (Day + OT)</span>
+                                    <p class="text-[11px] text-slate-600 mt-0.5">08:00 ~ 20:00 (အခြေခံ ၈ နာရီ + OT ၂.၅ နာရီ၊ ညနေစာ ၃၀ မိနစ် နုတ်ပြီး)</p>
+                                </div>
+                                <div class="p-2.5 bg-white rounded-xl border border-indigo-200">
+                                    <span class="font-bold text-indigo-800">🌙 ညဆိုင်း (Night Shift)</span>
+                                    <p class="text-[11px] text-slate-600 mt-0.5">20:00 ~ 05:00 (အခြေခံ ၈ နာရီ + ညဆိုင်းကြေး 야간수당 0.5x)</p>
+                                </div>
+                                <div class="p-2.5 bg-white rounded-xl border border-purple-200">
+                                    <span class="font-bold text-purple-800">✨ ညဆိုင်း + OT (Night + OT)</span>
+                                    <p class="text-[11px] text-slate-600 mt-0.5">20:00 ~ 08:00 (အခြေခံ ၈ နာရီ + OT ၂.၅ နာရီ + ညဆိုင်းကြေး)</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-3.5 bg-emerald-50/70 rounded-2xl border border-emerald-200 shadow-xs">
+                            <div class="font-bold text-emerald-900 text-sm mb-1.5 flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-xs">☕</span>
+                                <span>ထမင်းစားနှင့် နားချိန် အလိုအလျောက် နုတ်ယူမှု (Break Deductions)</span>
+                            </div>
+                            <p class="text-xs text-emerald-800 leading-relaxed">
+                                Settings ကဏ္ဍ (၃) တွင် သင့်စက်ရုံအချိန်အတိုင်း နေ့လယ်စာ (Lunch)၊ ညနေစာ (Dinner)၊ ညသန်းခေါင်စာ (Midnight Meal) နှင့် မနက်စောစောနားချိန်များကို သတ်မှတ်ထားပါက မှတ်တမ်းထည့်တိုင်း အလုပ်ချိန်ထဲမှ အလိုအလျောက် နုတ်ပေးသဖြင့် ကိုယ်တိုင်နုတ်ယူတွက်ချက်စရာ မလိုပါ။
+                            </p>
+                        </div>
+
+                        <div class="p-3.5 bg-purple-50/70 rounded-2xl border border-purple-200 shadow-xs">
+                            <div class="font-bold text-purple-900 text-sm mb-1.5 flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-lg bg-purple-600 text-white flex items-center justify-center text-xs">🏖️</span>
+                                <span>ခွင့်ရက်များနှင့် လစာရပိတ်ရက် မှတ်တမ်းတင်နည်း</span>
+                            </div>
+                            <p class="text-xs text-purple-800 leading-relaxed">
+                                မှတ်တမ်းထည့်သွင်းသည့် Modal အောက်ခြေရှိ <b>"+ နှစ်စဉ်/လစဉ်ခွင့် မှတ်ရန် (연차)"</b> သို့မဟုတ် <b>"+ 유급휴일 - လစာရသော ပိတ်ရက်"</b> ခလုတ်ကို နှိပ်၍ ခွင့်ရက်များအတွက် အခြေခံလုပ်ခ (၈ နာရီစာ) ကို လစာထဲတွင် တိုက်ရိုက်ထည့်သွင်းခံစားနိုင်ပါသည်။
+                            </p>
+                        </div>
+                    </div>
+                `,
+                calendar: `
+                    <div class="space-y-3.5">
+                        <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 shadow-xs">
+                            <div class="font-bold text-slate-800 text-sm mb-2 flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-lg bg-slate-700 text-white flex items-center justify-center text-xs">🎨</span>
+                                <span>ပြက္ခဒိန် အမှတ်အသားနှင့် အရောင်များ (Calendar Badges)</span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2 text-xs">
+                                <div class="flex items-center gap-2 p-2 bg-white rounded-xl border border-emerald-200">
+                                    <span class="w-3.5 h-3.5 rounded-full bg-emerald-500 shrink-0"></span>
+                                    <div><b class="text-emerald-800">အစိမ်းရောင်</b><p class="text-[10px] text-slate-500">ပုံမှန် အခြေခံ အလုပ်ဆင်းချိန်</p></div>
+                                </div>
+                                <div class="flex items-center gap-2 p-2 bg-white rounded-xl border border-amber-200">
+                                    <span class="w-3.5 h-3.5 rounded-full bg-amber-500 shrink-0"></span>
+                                    <div><b class="text-amber-800">လိမ္မော်ရောင်</b><p class="text-[10px] text-slate-500">အချိန်ပို OT (1.5x လုပ်ခ)</p></div>
+                                </div>
+                                <div class="flex items-center gap-2 p-2 bg-white rounded-xl border border-indigo-200">
+                                    <span class="w-3.5 h-3.5 rounded-full bg-indigo-500 shrink-0"></span>
+                                    <div><b class="text-indigo-800">ခရမ်းရောင်</b><p class="text-[10px] text-slate-500">ညဆိုင်းကြေး 야간 (22:00~06:00)</p></div>
+                                </div>
+                                <div class="flex items-center gap-2 p-2 bg-white rounded-xl border border-purple-200">
+                                    <span class="w-3.5 h-3.5 rounded-full bg-purple-500 shrink-0"></span>
+                                    <div><b class="text-purple-800">ခွင့်ရက် / ပိတ်ရက်</b><p class="text-[10px] text-slate-500">연차ခွင့် သို့မဟုတ် 유급휴일</p></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-3.5 bg-blue-50/70 rounded-2xl border border-blue-200 shadow-xs">
+                            <div class="font-bold text-blue-900 text-sm mb-1.5 flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-lg bg-blue-600 text-white flex items-center justify-center text-xs">👆</span>
+                                <span>ရက်စွဲတစ်ခုချင်းစီ အသေးစိတ် စစ်ဆေးခြင်းနှင့် ပြင်ဆင်ခြင်း</span>
+                            </div>
+                            <p class="text-xs text-blue-800 leading-relaxed">
+                                ပြက္ခဒိန်ပေါ်ရှိ မှတ်တမ်းတင်ထားသော မည်သည့်ရက်ကိုမဆို နှိပ်လိုက်ပါက ထိုနေ့အတွက် စတင်ချိန်၊ ပြီးဆုံးချိန်၊ နားချိန်နုတ်ယူမှု၊ ရရှိမည့် အခြေခံလုပ်ခနှင့် OT လုပ်ခများကို ရှင်းလင်းစွာ မြင်တွေ့ရပြီး အချိန်မရွေး ပြန်လည်ပြင်ဆင်ခြင်း (Edit) သို့မဟုတ် ဖျက်ပစ်ခြင်း (Delete) ပြုလုပ်နိုင်ပါသည်။
+                            </p>
+                        </div>
+
+                        <div class="p-3.5 bg-indigo-50/70 rounded-2xl border border-indigo-200 shadow-xs">
+                            <div class="font-bold text-indigo-900 text-sm mb-1.5 flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-xs">📊</span>
+                                <span>လစဉ် အကျဉ်းချုပ် ကတ် (Monthly Summary)</span>
+                            </div>
+                            <p class="text-xs text-indigo-800 leading-relaxed">
+                                ပြက္ခဒိန်ဘေးရှိ လစဉ်အကျဉ်းချုပ်ကတ်တွင် တစ်လလုံးအတွက် စုစုပေါင်း အလုပ်ဆင်းရက်၊ သာမန်ရက်၊ ပိတ်ရက်၊ ညဆိုင်းရက်၊ အခြေခံနာရီပေါင်း၊ OT နာရီပေါင်း၊ ညဆိုင်းနာရီပေါင်း၊ အပတ်စဉ်နားရက် ခံစားခွင့် (주휴수당) နှင့် ခန့်မှန်းရရှိမည့် စုစုပေါင်းလစာ (KRW) ကို အချိန်နှင့်တပြေးညီ တိကျစွာ တွက်ချက်ပြသပေးပါသည်။
+                            </p>
+                        </div>
+                    </div>
+                `,
+                salary: `
+                    <div class="space-y-3.5">
+                        <div class="p-3.5 bg-teal-50 rounded-2xl border border-teal-200 shadow-xs">
+                            <div class="font-bold text-teal-900 text-sm mb-2 flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-lg bg-teal-600 text-white flex items-center justify-center text-xs">🏛️</span>
+                                <span>ကိုရီးယားနိုင်ငံ ၄ မျိုး အာမခံ ဖြတ်တောက်မှု (4 Major Insurances)</span>
+                            </div>
+                            <div class="space-y-1.5 text-xs text-teal-950">
+                                <div class="flex justify-between p-2 bg-white rounded-xl border border-teal-100">
+                                    <span><b>၁။ အမျိုးသားပင်စင် (국민연금)</b>: 4.5%</span>
+                                    <span class="text-[11px] text-teal-700">(E-9 နိုင်ငံသဘောတူညီချက်အရ)</span>
+                                </div>
+                                <div class="flex justify-between p-2 bg-white rounded-xl border border-teal-100">
+                                    <span><b>၂။ ကျန်းမာရေးအာမခံ (건강보험)</b>: 3.545%</span>
+                                    <span class="text-[11px] text-teal-700">(လုပ်ခလစာ၏ ၃.၅၄၅%)</span>
+                                </div>
+                                <div class="flex justify-between p-2 bg-white rounded-xl border border-teal-100">
+                                    <span><b>၃။ ရေရှည်စောင့်ရှောက်မှု (장기요양)</b>: 12.95%</span>
+                                    <span class="text-[11px] text-teal-700">(ကျန်းမာရေးအာမခံ၏ ၁၂.၉၅%)</span>
+                                </div>
+                                <div class="flex justify-between p-2 bg-white rounded-xl border border-teal-100">
+                                    <span><b>၄။ အလုပ်အကိုင်အာမခံ (고용보험)</b>: 0.9%</span>
+                                    <span class="text-[11px] text-teal-700">(လုပ်ခလစာ၏ ၀.၉%)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 shadow-xs">
+                            <div class="font-bold text-slate-800 text-sm mb-1.5 flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-lg bg-slate-700 text-white flex items-center justify-center text-xs">🏠</span>
+                                <span>အဆောင်ခနှင့် ထမင်းဖိုး ပုံသေနုတ်ငွေ (Dormitory & Meal Fee)</span>
+                            </div>
+                            <p class="text-xs text-slate-600 leading-relaxed">
+                                ကုမ္ပဏီမှ လစဉ် လစာထဲမှ ပုံသေနုတ်ယူသည့် အဆောင်ခ သို့မဟုတ် ထမင်းဖိုး ပမာဏကို Settings ကဏ္ဍ (၄) တွင် ထည့်သွင်းထားပါက လစာရှင်းတမ်းတွင် အလိုအလျောက် ထည့်သွင်းနုတ်ယူပေးမည် ဖြစ်ပါသည်။
+                            </p>
+                        </div>
+
+                        <div class="p-3.5 bg-indigo-50/70 rounded-2xl border border-indigo-200 shadow-xs">
+                            <div class="font-bold text-indigo-900 text-sm mb-1.5 flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-xs">🧾</span>
+                                <span>လစဉ်လစာ 明細 (Payslip) ရှင်းတမ်း ထုတ်ယူခြင်း</span>
+                            </div>
+                            <p class="text-xs text-indigo-800 leading-relaxed">
+                                မှတ်တမ်းစာမျက်နှာ (Record View) ရှိ လအလိုက် <b>"ရှင်းတမ်း"</b> ခလုတ်ကို နှိပ်ပါက စုစုပေါင်းရငွေ၊ အာမခံနှင့် အခွန်ဖြတ်ငွေများ၊ လက်ထဲအသားတင်ရရှိမည့်ငွေ (Net Pay) နှင့် မိဘထံလွှဲမည့်ငွေများကို ရှင်းတမ်းစာရွက်ပုံစံဖြင့် ပြည့်စုံစွာ ကြည့်ရှုနိုင်ပါသည်။
+                            </p>
+                        </div>
+                    </div>
+                `,
+                backup: `
+                    <div class="space-y-3.5">
+                        <div class="p-3.5 bg-emerald-50 rounded-2xl border border-emerald-200 shadow-xs">
+                            <div class="font-bold text-emerald-900 text-sm mb-2 flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-xs">📁</span>
+                                <span>ဖုန်းထဲသို့ Excel / CSV / JSON ထုတ်ယူသိမ်းဆည်းနည်း</span>
+                            </div>
+                            <p class="text-xs text-emerald-800 leading-relaxed mb-2">
+                                Settings ကဏ္ဍ (၆) ရှိ ခလုတ်များကို အသုံးပြု၍ သင့်ဒေတာများကို သိမ်းဆည်းနိုင်ပါသည်:
+                            </p>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                                <div class="p-2 bg-white rounded-xl border border-emerald-100 text-center">
+                                    <b class="text-emerald-700">Export Excel (.xlsx)</b>
+                                    <p class="text-[10px] text-slate-500 mt-0.5">Excel ဖြင့် ဖွင့်ဖတ်နိုင်သော ဇယား</p>
+                                </div>
+                                <div class="p-2 bg-white rounded-xl border border-emerald-100 text-center">
+                                    <b class="text-emerald-700">Export CSV (.csv)</b>
+                                    <p class="text-[10px] text-slate-500 mt-0.5">Spreadsheet စာရင်းဖိုင်</p>
+                                </div>
+                                <div class="p-2 bg-white rounded-xl border border-emerald-100 text-center">
+                                    <b class="text-emerald-700">Backup JSON</b>
+                                    <p class="text-[10px] text-slate-500 mt-0.5">ဖုန်းပြောင်းလျှင် ပြန်သွင်းနိုင်သည့်ဖိုင်</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-3.5 bg-amber-50 rounded-2xl border border-amber-200 shadow-xs">
+                            <div class="font-bold text-amber-900 text-sm mb-1.5 flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-lg bg-amber-600 text-white flex items-center justify-center text-xs">☁️</span>
+                                <span>Google Drive Cloud Backup (တိုက်ရိုက်သိမ်းဆည်းခြင်း)</span>
+                            </div>
+                            <p class="text-xs text-amber-800 leading-relaxed">
+                                Google အကောင့်ဖြင့် ဝင်ရောက်အသုံးပြုပါက သင့်ကိုယ်ပိုင် Google Drive (App Data) ထဲသို့ <b>"Drive သို့ သိမ်းမည်"</b> ခလုတ်ဖြင့် လုံခြုံစွာ Backup သိမ်းဆည်းနိုင်ပြီး ဖုန်းပျောက်ခြင်း၊ စက်လဲခြင်းများ ကြုံတွေ့ရပါက <b>"Drive မှ ပြန်ယူမည်"</b> ဖြင့် ချက်ချင်း ပြန်လည်ရယူနိုင်ပါသည်။
+                            </p>
+                        </div>
+
+                        <div class="p-3.5 bg-indigo-50/70 rounded-2xl border border-indigo-200 shadow-xs">
+                            <div class="font-bold text-indigo-900 text-sm mb-1.5 flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-xs">⏰</span>
+                                <span>လစဉ် အလိုအလျောက် Backup သိမ်းဆည်းခြင်း (Auto Backup)</span>
+                            </div>
+                            <p class="text-xs text-indigo-800 leading-relaxed">
+                                Settings တွင် Auto Backup ဖွင့်ထားပါက လစဉ် မိမိစိတ်ကြိုက်သတ်မှတ်ထားသော နေ့ရက်နှင့် အချိန် (ဥပမာ: လကုန် ၃၁ ရက်၊ ည ၂၂:၀၀) တွင် ဖုန်းထဲသို့ အလိုအလျောက် Backup ဖိုင် သိမ်းဆည်းပေးမည် ဖြစ်ပါသည်။
+                            </p>
+                        </div>
+                    </div>
+                `
+            },
+            ko: {
+                worklog: `
+                    <div class="space-y-3.5">
+                        <div class="p-3.5 bg-amber-50 rounded-2xl border border-amber-200 shadow-xs">
+                            <div class="font-bold text-amber-900 text-sm mb-1.5 flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-lg bg-amber-500 text-white flex items-center justify-center text-xs">⚡</span>
+                                <span>원클릭 오늘 근무 빠른 등록 (Quick Add)</span>
+                            </div>
+                            <p class="text-xs text-amber-800 leading-relaxed">
+                                홈 화면의 <b>"⚡ 오늘 근무 빠른 등록"</b> 버튼을 누르면 설정 메뉴에서 지정한 기본 근무 시간(예: 08:00 ~ 17:00)으로 오늘 날짜의 근무가 원클릭으로 간편하게 기록됩니다.
+                            </p>
+                        </div>
+
+                        <div class="p-3.5 bg-blue-50/70 rounded-2xl border border-blue-200 shadow-xs">
+                            <div class="font-bold text-blue-900 text-sm mb-2 flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-lg bg-blue-600 text-white flex items-center justify-center text-xs">🎯</span>
+                                <span>E-9 맞춤 교대근무 프리셋 (Shift Presets)</span>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                                <div class="p-2.5 bg-white rounded-xl border border-emerald-200">
+                                    <span class="font-bold text-emerald-800">☀️ 주간근무 (Day Shift)</span>
+                                    <p class="text-[11px] text-slate-600 mt-0.5">08:00 ~ 17:00 (기본 8시간, 점심시간 1시간 자동 공제)</p>
+                                </div>
+                                <div class="p-2.5 bg-white rounded-xl border border-amber-200">
+                                    <span class="font-bold text-amber-800">⚡ 주간 + 연장 (Day + OT)</span>
+                                    <p class="text-[11px] text-slate-600 mt-0.5">08:00 ~ 20:00 (기본 8h + 연장 2.5h, 저녁식사 30분 공제)</p>
+                                </div>
+                                <div class="p-2.5 bg-white rounded-xl border border-indigo-200">
+                                    <span class="font-bold text-indigo-800">🌙 야간근무 (Night Shift)</span>
+                                    <p class="text-[11px] text-slate-600 mt-0.5">20:00 ~ 05:00 (기본 8시간 + 야간근로수당 0.5배 가산)</p>
+                                </div>
+                                <div class="p-2.5 bg-white rounded-xl border border-purple-200">
+                                    <span class="font-bold text-purple-800">✨ 야간 + 연장 (Night + OT)</span>
+                                    <p class="text-[11px] text-slate-600 mt-0.5">20:00 ~ 08:00 (기본 8h + 연장 2.5h + 야간근로수당)</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-3.5 bg-emerald-50/70 rounded-2xl border border-emerald-200 shadow-xs">
+                            <div class="font-bold text-emerald-900 text-sm mb-1.5 flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-xs">☕</span>
+                                <span>식사 및 휴게시간 자동 공제 (Break Deductions)</span>
+                            </div>
+                            <p class="text-xs text-emerald-800 leading-relaxed">
+                                설정 섹션 (3)에서 사업장 기준에 맞춰 점심, 저녁, 야간 식사 및 휴식 시간을 설정해두면 근무 등록 시 실근로시간에서 자동으로 정확히 차감 계산됩니다.
+                            </p>
+                        </div>
+                    </div>
+                `,
+                calendar: `
+                    <div class="space-y-3.5">
+                        <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 shadow-xs">
+                            <div class="font-bold text-slate-800 text-sm mb-2 flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-lg bg-slate-700 text-white flex items-center justify-center text-xs">🎨</span>
+                                <span>달력 색상 및 배지 안내</span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2 text-xs">
+                                <div class="flex items-center gap-2 p-2 bg-white rounded-xl border border-emerald-200">
+                                    <span class="w-3.5 h-3.5 rounded-full bg-emerald-500 shrink-0"></span>
+                                    <div><b class="text-emerald-800">초록색</b><p class="text-[10px] text-slate-500">기본 소정근로시간</p></div>
+                                </div>
+                                <div class="flex items-center gap-2 p-2 bg-white rounded-xl border border-amber-200">
+                                    <span class="w-3.5 h-3.5 rounded-full bg-amber-500 shrink-0"></span>
+                                    <div><b class="text-amber-800">주황색</b><p class="text-[10px] text-slate-500">연장근로 OT (1.5배)</p></div>
+                                </div>
+                                <div class="flex items-center gap-2 p-2 bg-white rounded-xl border border-indigo-200">
+                                    <span class="w-3.5 h-3.5 rounded-full bg-indigo-500 shrink-0"></span>
+                                    <div><b class="text-indigo-800">보라색</b><p class="text-[10px] text-slate-500">야간수당 (22:00~06:00)</p></div>
+                                </div>
+                                <div class="flex items-center gap-2 p-2 bg-white rounded-xl border border-purple-200">
+                                    <span class="w-3.5 h-3.5 rounded-full bg-purple-500 shrink-0"></span>
+                                    <div><b class="text-purple-800">휴가 / 휴일</b><p class="text-[10px] text-slate-500">연차유급휴가 또는 유급휴일</p></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `,
+                salary: `
+                    <div class="space-y-3.5">
+                        <div class="p-3.5 bg-teal-50 rounded-2xl border border-teal-200 shadow-xs">
+                            <div class="font-bold text-teal-900 text-sm mb-2 flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-lg bg-teal-600 text-white flex items-center justify-center text-xs">🏛️</span>
+                                <span>대한민국 4대 보험 공제율</span>
+                            </div>
+                            <div class="space-y-1.5 text-xs text-teal-950">
+                                <div class="flex justify-between p-2 bg-white rounded-xl border border-teal-100">
+                                    <span><b>1. 국민연금</b>: 4.5%</span>
+                                    <span class="text-[11px] text-teal-700">(근로자 부담분)</span>
+                                </div>
+                                <div class="flex justify-between p-2 bg-white rounded-xl border border-teal-100">
+                                    <span><b>2. 건강보험</b>: 3.545%</span>
+                                    <span class="text-[11px] text-teal-700">(월급여의 3.545%)</span>
+                                </div>
+                                <div class="flex justify-between p-2 bg-white rounded-xl border border-teal-100">
+                                    <span><b>3. 장기요양보험</b>: 12.95%</span>
+                                    <span class="text-[11px] text-teal-700">(건강보험료의 12.95%)</span>
+                                </div>
+                                <div class="flex justify-between p-2 bg-white rounded-xl border border-teal-100">
+                                    <span><b>4. 고용보험</b>: 0.9%</span>
+                                    <span class="text-[11px] text-teal-700">(월급여의 0.9%)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `,
+                backup: `
+                    <div class="space-y-3.5">
+                        <div class="p-3.5 bg-emerald-50 rounded-2xl border border-emerald-200 shadow-xs">
+                            <div class="font-bold text-emerald-900 text-sm mb-1.5 flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-xs">📁</span>
+                                <span>엑셀(Excel) 및 데이터 내보내기</span>
+                            </div>
+                            <p class="text-xs text-emerald-800 leading-relaxed">
+                                설정 섹션 (6)에서 언제든지 월별 급여 데이터를 엑셀(.xlsx), CSV 스프레드시트 또는 JSON 백업 파일로 스마트폰에 다운로드할 수 있습니다.
+                            </p>
+                        </div>
+                    </div>
+                `
+            },
+            en: {
+                worklog: `
+                    <div class="space-y-3.5">
+                        <div class="p-3.5 bg-amber-50 rounded-2xl border border-amber-200 shadow-xs">
+                            <div class="font-bold text-amber-900 text-sm mb-1.5 flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-lg bg-amber-500 text-white flex items-center justify-center text-xs">⚡</span>
+                                <span>1-Click Quick Add Today</span>
+                            </div>
+                            <p class="text-xs text-amber-800 leading-relaxed">
+                                Click the <b>"⚡ Quick Add Today"</b> button on the home screen to instantly log today's working hours using your configured default schedule (e.g. 08:00 ~ 17:00).
+                            </p>
+                        </div>
+
+                        <div class="p-3.5 bg-blue-50/70 rounded-2xl border border-blue-200 shadow-xs">
+                            <div class="font-bold text-blue-900 text-sm mb-2 flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-lg bg-blue-600 text-white flex items-center justify-center text-xs">🎯</span>
+                                <span>E-9 Factory Shift Presets</span>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                                <div class="p-2.5 bg-white rounded-xl border border-emerald-200">
+                                    <span class="font-bold text-emerald-800">☀️ Day Shift</span>
+                                    <p class="text-[11px] text-slate-600 mt-0.5">08:00 ~ 17:00 (8h base, 1h lunch deducted)</p>
+                                </div>
+                                <div class="p-2.5 bg-white rounded-xl border border-amber-200">
+                                    <span class="font-bold text-amber-800">⚡ Day + OT</span>
+                                    <p class="text-[11px] text-slate-600 mt-0.5">08:00 ~ 20:00 (8h base + 2.5h OT, dinner break deducted)</p>
+                                </div>
+                                <div class="p-2.5 bg-white rounded-xl border border-indigo-200">
+                                    <span class="font-bold text-indigo-800">🌙 Night Shift</span>
+                                    <p class="text-[11px] text-slate-600 mt-0.5">20:00 ~ 05:00 (8h base + night allowance bonus 0.5x)</p>
+                                </div>
+                                <div class="p-2.5 bg-white rounded-xl border border-purple-200">
+                                    <span class="font-bold text-purple-800">✨ Night + OT</span>
+                                    <p class="text-[11px] text-slate-600 mt-0.5">20:00 ~ 08:00 (8h base + 2.5h OT + night allowance)</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-3.5 bg-emerald-50/70 rounded-2xl border border-emerald-200 shadow-xs">
+                            <div class="font-bold text-emerald-900 text-sm mb-1.5 flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-xs">☕</span>
+                                <span>Automatic Break Deductions</span>
+                            </div>
+                            <p class="text-xs text-emerald-800 leading-relaxed">
+                                Configure your factory's exact break periods in Settings Section 3 (lunch, dinner, midnight meal, and morning breaks). They are automatically deducted from work hours so you never have to calculate manually.
+                            </p>
+                        </div>
+                    </div>
+                `,
+                calendar: `
+                    <div class="space-y-3.5">
+                        <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 shadow-xs">
+                            <div class="font-bold text-slate-800 text-sm mb-2 flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-lg bg-slate-700 text-white flex items-center justify-center text-xs">🎨</span>
+                                <span>Calendar Color Badges</span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2 text-xs">
+                                <div class="flex items-center gap-2 p-2 bg-white rounded-xl border border-emerald-200">
+                                    <span class="w-3.5 h-3.5 rounded-full bg-emerald-500 shrink-0"></span>
+                                    <div><b class="text-emerald-800">Green</b><p class="text-[10px] text-slate-500">Regular Base Hours</p></div>
+                                </div>
+                                <div class="flex items-center gap-2 p-2 bg-white rounded-xl border border-amber-200">
+                                    <span class="w-3.5 h-3.5 rounded-full bg-amber-500 shrink-0"></span>
+                                    <div><b class="text-amber-800">Orange</b><p class="text-[10px] text-slate-500">Overtime OT (1.5x pay)</p></div>
+                                </div>
+                                <div class="flex items-center gap-2 p-2 bg-white rounded-xl border border-indigo-200">
+                                    <span class="w-3.5 h-3.5 rounded-full bg-indigo-500 shrink-0"></span>
+                                    <div><b class="text-indigo-800">Purple</b><p class="text-[10px] text-slate-500">Night Shift (22:00~06:00)</p></div>
+                                </div>
+                                <div class="flex items-center gap-2 p-2 bg-white rounded-xl border border-purple-200">
+                                    <span class="w-3.5 h-3.5 rounded-full bg-purple-500 shrink-0"></span>
+                                    <div><b class="text-purple-800">Leave / Holiday</b><p class="text-[10px] text-slate-500">Annual leave or paid holiday</p></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `,
+                salary: `
+                    <div class="space-y-3.5">
+                        <div class="p-3.5 bg-teal-50 rounded-2xl border border-teal-200 shadow-xs">
+                            <div class="font-bold text-teal-900 text-sm mb-2 flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-lg bg-teal-600 text-white flex items-center justify-center text-xs">🏛️</span>
+                                <span>Korea 4 Major Social Insurances</span>
+                            </div>
+                            <div class="space-y-1.5 text-xs text-teal-950">
+                                <div class="flex justify-between p-2 bg-white rounded-xl border border-teal-100">
+                                    <span><b>1. National Pension</b>: 4.5%</span>
+                                    <span class="text-[11px] text-teal-700">(by nationality agreement)</span>
+                                </div>
+                                <div class="flex justify-between p-2 bg-white rounded-xl border border-teal-100">
+                                    <span><b>2. Health Insurance</b>: 3.545%</span>
+                                    <span class="text-[11px] text-teal-700">(3.545% of salary)</span>
+                                </div>
+                                <div class="flex justify-between p-2 bg-white rounded-xl border border-teal-100">
+                                    <span><b>3. Long-term Care</b>: 12.95%</span>
+                                    <span class="text-[11px] text-teal-700">(12.95% of health insurance)</span>
+                                </div>
+                                <div class="flex justify-between p-2 bg-white rounded-xl border border-teal-100">
+                                    <span><b>4. Employment Insurance</b>: 0.9%</span>
+                                    <span class="text-[11px] text-teal-700">(0.9% of salary)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `,
+                backup: `
+                    <div class="space-y-3.5">
+                        <div class="p-3.5 bg-emerald-50 rounded-2xl border border-emerald-200 shadow-xs">
+                            <div class="font-bold text-emerald-900 text-sm mb-1.5 flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-xs">📁</span>
+                                <span>Export to Excel, CSV & JSON</span>
+                            </div>
+                            <p class="text-xs text-emerald-800 leading-relaxed">
+                                Easily export your monthly salary data into formatted Excel (.xlsx) spreadsheets, CSV files, or encrypted backup JSON files from Settings Section 6.
+                            </p>
+                        </div>
+                    </div>
+                `
+            },
+            th: {
+                worklog: `
+                    <div class="space-y-3.5">
+                        <div class="p-3.5 bg-amber-50 rounded-2xl border border-amber-200 shadow-xs">
+                            <div class="font-bold text-amber-900 text-sm mb-1.5 flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-lg bg-amber-500 text-white flex items-center justify-center text-xs">⚡</span>
+                                <span>บันทึกงานวันนี้ด้วยคลิกเดียว (Quick Add)</span>
+                            </div>
+                            <p class="text-xs text-amber-800 leading-relaxed">
+                                กดปุ่ม <b>"⚡ บันทึกงานวันนี้ด่วน"</b> บนหน้าจอหลักเพื่อบันทึกเวลาทำงานของวันนี้ทันทีตามเวลามาตรฐานที่คุณตั้งไว้ (เช่น 08:00 ~ 17:00)
+                            </p>
+                        </div>
+                    </div>
+                `,
+                calendar: `
+                    <div class="space-y-3.5">
+                        <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 shadow-xs">
+                            <div class="font-bold text-slate-800 text-sm mb-2 flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-lg bg-slate-700 text-white flex items-center justify-center text-xs">🎨</span>
+                                <span>ความหมายของสีบนปฏิทิน</span>
+                            </div>
+                            <p class="text-xs text-slate-600">สีเขียว = เวลาทำงานปกติ, สีส้ม = โอที OT (1.5 เท่า), สีม่วง = ค่ากะดึก 야간 (22:00~06:00), สีแดง = วันหยุด</p>
+                        </div>
+                    </div>
+                `,
+                salary: `
+                    <div class="space-y-3.5">
+                        <div class="p-3.5 bg-teal-50 rounded-2xl border border-teal-200 shadow-xs">
+                            <div class="font-bold text-teal-900 text-sm mb-2 flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-lg bg-teal-600 text-white flex items-center justify-center text-xs">🏛️</span>
+                                <span>ประกันสังคม 4 ประเภทในเกาหลี</span>
+                            </div>
+                            <p class="text-xs text-teal-800">ระบบจะคำนวณหักเงินประกันสุขภาพ บำนาญ และประกันการจ้างงานโดยอัตโนมัติ</p>
+                        </div>
+                    </div>
+                `,
+                backup: `
+                    <div class="space-y-3.5">
+                        <div class="p-3.5 bg-emerald-50 rounded-2xl border border-emerald-200 shadow-xs">
+                            <div class="font-bold text-emerald-900 text-sm mb-1.5 flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-xs">📁</span>
+                                <span>ส่งออกข้อมูล Excel และ Google Drive</span>
+                            </div>
+                            <p class="text-xs text-emerald-800">สามารถดาวน์โหลดไฟล์ Excel (.xlsx) หรือสำรองข้อมูลขึ้น Google Drive ได้ในหมวดที่ 6</p>
+                        </div>
+                    </div>
+                `
+            },
+            vi: {
+                worklog: `
+                    <div class="space-y-3.5">
+                        <div class="p-3.5 bg-amber-50 rounded-2xl border border-amber-200 shadow-xs">
+                            <div class="font-bold text-amber-900 text-sm mb-1.5 flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-lg bg-amber-500 text-white flex items-center justify-center text-xs">⚡</span>
+                                <span>Ghi nhanh giờ làm hôm nay (Quick Add)</span>
+                            </div>
+                            <p class="text-xs text-amber-800 leading-relaxed">
+                                Nhấn nút <b>"⚡ Ghi nhanh hôm nay"</b> trên màn hình chính để lưu ngay ca làm việc hôm nay theo giờ mặc định đã cài đặt.
+                            </p>
+                        </div>
+                    </div>
+                `,
+                calendar: `
+                    <div class="space-y-3.5">
+                        <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 shadow-xs">
+                            <div class="font-bold text-slate-800 text-sm mb-2 flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-lg bg-slate-700 text-white flex items-center justify-center text-xs">🎨</span>
+                                <span>Màu sắc biểu thị trên lịch</span>
+                            </div>
+                            <p class="text-xs text-slate-600">Xanh lá = Giờ hành chính, Cam = Tăng ca OT (x1.5), Tím = Ca đêm 야간, Đỏ = Ngày lễ/nghỉ có lương.</p>
+                        </div>
+                    </div>
+                `,
+                salary: `
+                    <div class="space-y-3.5">
+                        <div class="p-3.5 bg-teal-50 rounded-2xl border border-teal-200 shadow-xs">
+                            <div class="font-bold text-teal-900 text-sm mb-2 flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-lg bg-teal-600 text-white flex items-center justify-center text-xs">🏛️</span>
+                                <span>4 loại bảo hiểm tại Hàn Quốc</span>
+                            </div>
+                            <p class="text-xs text-teal-800">Tự động trừ lương hưu quốc dân, bảo hiểm y tế, chăm sóc dài hạn và bảo hiểm thất nghiệp theo đúng luật.</p>
+                        </div>
+                    </div>
+                `,
+                backup: `
+                    <div class="space-y-3.5">
+                        <div class="p-3.5 bg-emerald-50 rounded-2xl border border-emerald-200 shadow-xs">
+                            <div class="font-bold text-emerald-900 text-sm mb-1.5 flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-xs">📁</span>
+                                <span>Xuất Excel & Sao lưu Google Drive</span>
+                            </div>
+                            <p class="text-xs text-emerald-800">Dễ dàng xuất bảng lương ra file Excel (.xlsx), CSV hoặc sao lưu dữ liệu lên Google Drive an toàn.</p>
+                        </div>
+                    </div>
+                `
+            },
+            id: {
+                worklog: `
+                    <div class="space-y-3.5">
+                        <div class="p-3.5 bg-amber-50 rounded-2xl border border-amber-200 shadow-xs">
+                            <div class="font-bold text-amber-900 text-sm mb-1.5 flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-lg bg-amber-500 text-white flex items-center justify-center text-xs">⚡</span>
+                                <span>1-Klik Catat Cepat Hari Ini (Quick Add)</span>
+                            </div>
+                            <p class="text-xs text-amber-800 leading-relaxed">
+                                Klik tombol <b>"⚡ Catat Cepat Hari Ini"</b> di beranda untuk langsung menyimpan jam kerja hari ini sesuai jam shift default Anda.
+                            </p>
+                        </div>
+                    </div>
+                `,
+                calendar: `
+                    <div class="space-y-3.5">
+                        <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 shadow-xs">
+                            <div class="font-bold text-slate-800 text-sm mb-2 flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-lg bg-slate-700 text-white flex items-center justify-center text-xs">🎨</span>
+                                <span>Arti Warna & Lencana di Kalender</span>
+                            </div>
+                            <p class="text-xs text-slate-600">Hijau = Jam kerja dasar, Oranye = Lembur OT (x1.5), Ungu = Shift malam 야간, Merah = Hari libur/cuti berbayar.</p>
+                        </div>
+                    </div>
+                `,
+                salary: `
+                    <div class="space-y-3.5">
+                        <div class="p-3.5 bg-teal-50 rounded-2xl border border-teal-200 shadow-xs">
+                            <div class="font-bold text-teal-900 text-sm mb-2 flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-lg bg-teal-600 text-white flex items-center justify-center text-xs">🏛️</span>
+                                <span>4 Asuransi Sosial Utama di Korea</span>
+                            </div>
+                            <p class="text-xs text-teal-800">Menghitung pemotongan pensiun nasional, asuransi kesehatan, perawatan lansia, dan asuransi ketenagakerjaan secara otomatis.</p>
+                        </div>
+                    </div>
+                `,
+                backup: `
+                    <div class="space-y-3.5">
+                        <div class="p-3.5 bg-emerald-50 rounded-2xl border border-emerald-200 shadow-xs">
+                            <div class="font-bold text-emerald-900 text-sm mb-1.5 flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-xs">📁</span>
+                                <span>Ekspor Excel & Cadangan Google Drive</span>
+                            </div>
+                            <p class="text-xs text-emerald-800">Ekspor rincian jam kerja ke Excel (.xlsx) atau simpan cadangan aman di Google Drive pribadi Anda.</p>
+                        </div>
+                    </div>
+                `
+            }
+        };
+
+    let currentGuideTab = 'worklog';
+
+    function openUserGuideModal() {
+        const modal = document.getElementById('user-guide-modal');
+        if (modal) {
+            renderGuideContent(currentGuideTab);
+            modal.classList.remove('hidden');
+            if (window.lucide) { window.lucide.createIcons(); }
+        }
+    }
+
+    function closeUserGuideModal() {
+        const modal = document.getElementById('user-guide-modal');
+        if (modal) {
+            modal.classList.add('hidden');
+        }
+    }
+
+    function renderGuideContent(tab = null, lang = null) {
+        if (tab) currentGuideTab = tab;
+        let currentL = lang;
+        if (!currentL) {
+            try {
+                currentL = (typeof getCurrentLang === 'function') ? getCurrentLang() : (localStorage.getItem('salary_tracker_lang') || 'my');
+            } catch (e) {
+                currentL = 'my';
+            }
+        }
+        const langContent = GUIDE_CONTENT[currentL] || GUIDE_CONTENT['my'];
+        const contentHtml = (langContent && langContent[currentGuideTab]) ? langContent[currentGuideTab] : (langContent ? langContent['worklog'] : '');
+        const container = document.getElementById('guide-tab-content');
+        if (container) {
+            container.innerHTML = contentHtml;
+        }
+
+        // Update active tab styles
+        document.querySelectorAll('.guide-tab-btn').forEach(btn => {
+            const bTab = btn.getAttribute('data-tab');
+            if (bTab === currentGuideTab) {
+                btn.className = 'guide-tab-btn flex-1 py-2 px-3 rounded-xl transition text-center whitespace-nowrap bg-white text-blue-600 shadow-sm border border-slate-200 font-bold cursor-pointer';
+            } else {
+                btn.className = 'guide-tab-btn flex-1 py-2 px-3 rounded-xl transition text-center whitespace-nowrap text-slate-600 hover:bg-white/60 font-semibold cursor-pointer';
+            }
+        });
+        if (window.lucide) { window.lucide.createIcons(); }
+    }
+
+    window.openUserGuideModal = openUserGuideModal;
+    window.closeUserGuideModal = closeUserGuideModal;
+    window.renderGuideContent = renderGuideContent;
+
+    // Modal backdrop click listener
+    document.addEventListener('DOMContentLoaded', () => {
+        const modal = document.getElementById('user-guide-modal');
+        if (modal) {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) closeUserGuideModal();
+            });
+        }
+        const openBtn = document.getElementById('open-user-guide-btn');
+        if (openBtn) {
+            openBtn.addEventListener('click', openUserGuideModal);
+        }
+    });
+</script>
 </body>
 </html>
