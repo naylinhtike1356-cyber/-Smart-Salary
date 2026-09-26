@@ -302,6 +302,9 @@
                 updateWidgetSummary: function(summaryText) {
                     console.log("Widget Summary updated:", summaryText);
                 },
+                updateWidgetData: function(jsonData) {
+                    console.log("Widget Data updated:", jsonData);
+                },
                 saveBackup: function(content, filename, mimeType) {
                     try {
                         const mime = mimeType || (filename.endsWith('.csv') ? 'text/csv' : 'application/json');
@@ -2926,6 +2929,7 @@
             if (typeof renderSummary === 'function') renderSummary();
             if (typeof renderCalendar === 'function') renderCalendar();
             if (typeof renderRecordTable === 'function') renderRecordTable();
+            if (typeof syncWidgetData === 'function') syncWidgetData();
         };
 
         // --- STATE MANAGEMENT ---
@@ -3317,6 +3321,81 @@
         };
 
         // --- RENDER FUNCTIONS ---
+        
+        // --- MULTILINGUAL WIDGET DATA & SYNC ---
+        const WIDGET_I18N = {
+            my: { headerTitle: "လစာမှတ်တမ်း", daysUnit: "ရက်", hoursUnit: "နာရီ", salaryLabel: "ခန့်မှန်းလစာ", btnToday: "⚡ ယနေ့မှတ်တမ်း", btnCopy: "📋 မနေ့ကလို" },
+            ko: { headerTitle: "급여 계산기", daysUnit: "일", hoursUnit: "시간", salaryLabel: "예상 급여", btnToday: "⚡ 오늘 기록", btnCopy: "📋 어제처럼" },
+            en: { headerTitle: "Salary Tracker", daysUnit: "Days", hoursUnit: "Hrs", salaryLabel: "Est. Salary", btnToday: "⚡ Today Log", btnCopy: "📋 Copy Y'day" },
+            th: { headerTitle: "บันทึกเงินเดือน", daysUnit: "วัน", hoursUnit: "ชม.", salaryLabel: "เงินเดือนโดยประมาณ", btnToday: "⚡ บันทึกวันนี้", btnCopy: "📋 คัดลอกเมื่อวาน" },
+            vi: { headerTitle: "Sổ Lương", daysUnit: "ngày", hoursUnit: "giờ", salaryLabel: "Lương ước tính", btnToday: "⚡ Hôm nay", btnCopy: "📋 Như hôm qua" },
+            id: { headerTitle: "Catatan Gaji", daysUnit: "hari", hoursUnit: "jam", salaryLabel: "Estimasi Gaji", btnToday: "⚡ Hari Ini", btnCopy: "📋 Seperti Kemarin" }
+        };
+
+        const syncWidgetData = () => {
+            if (!window.AndroidBridge) return;
+            const curLang = (typeof getCurrentLang === 'function') ? getCurrentLang() : (localStorage.getItem('app_language') || 'my');
+            const wDict = WIDGET_I18N[curLang] || WIDGET_I18N['my'];
+            const now = state.currentDate || new Date();
+            const y = now.getFullYear(), m = now.getMonth();
+            const monthStr = `${y}.${String(m + 1).padStart(2, '0')}`;
+            
+            const monthlyData = state.timeData.filter(entry => {
+                const d = new Date(entry.date);
+                return d.getFullYear() === y && d.getMonth() === m;
+            });
+            const workEntries = monthlyData.filter(e => e.type.startsWith('regular') || e.type.startsWith('holiday') || e.type === 'night_allowance');
+            const daysSet = new Set(workEntries.map(e => e.date));
+            const baseMs = workEntries.reduce((s, e) => s + (e.type.includes('_base') ? e.durationMs : 0), 0);
+            const otMs = workEntries.reduce((s, e) => s + (e.type.includes('_ot') ? e.durationMs : 0), 0);
+            const workHoursStr = ((baseMs + otMs) / 3600000).toFixed(1);
+
+            // Calculate estimated net salary
+            let estSalaryStr = "---";
+            try {
+                let totalGross = 0;
+                monthlyData.forEach(e => {
+                    if (typeof e.pay === 'number') totalGross += e.pay;
+                });
+                const monthKey = toYyyyMmDd(now).substring(0, 7);
+                const monthExtra = state.monthlyExtras.find(ex => ex.month === monthKey);
+                const weeklyHolidaysCount = (monthExtra && monthExtra.weekly_holidays !== undefined) ? monthExtra.weekly_holidays : (state.settings.weekly_holidays || 0);
+                const weeklyHolidayPay = weeklyHolidaysCount * 8 * (state.settings.regular_base || 0);
+                totalGross += weeklyHolidayPay;
+
+                if (totalGross > 0) {
+                    const deductions = calculateAllDeductions(totalGross);
+                    const netSalary = Math.round(totalGross - deductions.totalDeductions);
+                    estSalaryStr = Number(netSalary > 0 ? netSalary : Math.round(totalGross)).toLocaleString();
+                }
+            } catch (err) {
+                console.error("Widget salary calculation error:", err);
+            }
+
+            const widgetPayload = {
+                lang: curLang,
+                headerTitle: wDict.headerTitle,
+                month: monthStr,
+                workDays: String(daysSet.size),
+                workHours: workHoursStr,
+                daysUnit: wDict.daysUnit,
+                hoursUnit: wDict.hoursUnit,
+                salaryLabel: wDict.salaryLabel,
+                estSalary: estSalaryStr,
+                btnToday: wDict.btnToday,
+                btnCopy: wDict.btnCopy,
+                summaryText: `${monthStr} | ${daysSet.size} ${wDict.daysUnit} | ${workHoursStr} ${wDict.hoursUnit}`
+            };
+
+            const jsonStr = JSON.stringify(widgetPayload);
+            if (typeof window.AndroidBridge.updateWidgetData === 'function') {
+                window.AndroidBridge.updateWidgetData(jsonStr);
+            }
+            if (typeof window.AndroidBridge.updateWidgetSummary === 'function') {
+                window.AndroidBridge.updateWidgetSummary(widgetPayload.summaryText);
+            }
+        };
+
         const renderSummary = () => {
             const year = state.currentDate.getFullYear();
             const month = state.currentDate.getMonth();
@@ -3874,13 +3953,8 @@
             } else if (activeView === 'settings-view') {
                 renderSettings();
             }
-            // Widget summary - always update when data may have changed
-            const y = state.currentDate.getFullYear(), m = state.currentDate.getMonth();
-            const monthStr = `${y}-${String(m+1).padStart(2,'0')}`;
-            const forWidget = state.timeData.filter(e => { const d = new Date(e.date); return d.getFullYear()===y && d.getMonth()===m && (e.type.startsWith('regular')||e.type.startsWith('holiday')||e.type==='night_allowance'); });
-            const daysSet = new Set(forWidget.map(e=>e.date)), baseMs = forWidget.reduce((s,e)=>s+(e.type.includes('_base')?e.durationMs:0),0), otMs = forWidget.reduce((s,e)=>s+(e.type.includes('_ot')?e.durationMs:0),0);
-            const widgetTxt = `${monthStr} | ${daysSet.size} ရက် | ${((baseMs+otMs)/3600000).toFixed(1)} နာရီ`;
-            if (window.AndroidBridge && typeof window.AndroidBridge.updateWidgetSummary === 'function') window.AndroidBridge.updateWidgetSummary(widgetTxt);
+            // Widget summary & multilingual data
+            syncWidgetData();
             // 3.2 FAB visibility - show only on calendar view
             const fab = getElement('fab-today-btn');
             if (fab) fab.classList.toggle('hidden', activeView !== 'calendar-view');

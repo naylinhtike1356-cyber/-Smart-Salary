@@ -98,7 +98,12 @@ class MainActivity : AppCompatActivity() {
         }
 
         @JavascriptInterface
-        fun saveBackup(content: String, filename: String, mimeType: String? = null): Boolean {
+        fun saveBackup(content: String, filename: String): Boolean {
+            return saveBackup(content, filename, null)
+        }
+
+        @JavascriptInterface
+        fun saveBackup(content: String, filename: String, mimeType: String?): Boolean {
             val mime = mimeType ?: when {
                 filename.endsWith(".csv") -> "text/csv"
                 else -> "application/json"
@@ -108,19 +113,29 @@ class MainActivity : AppCompatActivity() {
                     val values = android.content.ContentValues().apply {
                         put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
                         put(MediaStore.MediaColumns.MIME_TYPE, mime)
+                        put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
+                        put(MediaStore.MediaColumns.IS_PENDING, 1)
                     }
                     val uri = contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
                     if (uri != null) {
                         contentResolver.openOutputStream(uri)?.use { out: OutputStream ->
                             out.write(content.toByteArray(Charsets.UTF_8))
                         }
+                        values.clear()
+                        values.put(MediaStore.MediaColumns.IS_PENDING, 0)
+                        contentResolver.update(uri, values, null, null)
                         true
-                    } else false
+                    } else {
+                        android.util.Log.e("BackupBridge", "Failed to insert MediaStore entry for $filename")
+                        false
+                    }
                 } else {
                     val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
                     File(downloadsDir, filename).writeText(content, Charsets.UTF_8)
                     true
                 }
+            }.onFailure { e ->
+                android.util.Log.e("BackupBridge", "saveBackup failed for $filename", e)
             }.getOrDefault(false)
         }
 
@@ -146,6 +161,14 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        /** Widget - Update full multilingual widget data */
+        @JavascriptInterface
+        fun updateWidgetData(jsonData: String) {
+            runCatching {
+                SalaryWidgetProvider.updateDataAndRefresh(this@MainActivity, jsonData)
+            }
+        }
+
         /** 4.3 - Save binary backup (base64) for Excel export */
         @JavascriptInterface
         fun saveBackupBase64(base64Data: String, filename: String): Boolean {
@@ -155,12 +178,17 @@ class MainActivity : AppCompatActivity() {
                     val values = android.content.ContentValues().apply {
                         put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
                         put(MediaStore.MediaColumns.MIME_TYPE, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                        put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
+                        put(MediaStore.MediaColumns.IS_PENDING, 1)
                     }
                     val uri = contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
-                    uri?.let {
+                    if (uri != null) {
                         contentResolver.openOutputStream(uri)?.use { out -> out.write(bytes) }
+                        values.clear()
+                        values.put(MediaStore.MediaColumns.IS_PENDING, 0)
+                        contentResolver.update(uri, values, null, null)
                         true
-                    } ?: false
+                    } else false
                 } else {
                     val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
                     File(downloadsDir, filename).writeBytes(bytes)
@@ -203,7 +231,10 @@ class MainActivity : AppCompatActivity() {
                 val result = googleDriveHelper.downloadBackup(account)
                 result.onSuccess { data ->
                     Toast.makeText(this@MainActivity, "Restore Success", Toast.LENGTH_SHORT).show()
-                    val escapedData = data.replace("\\", "\\\\").replace("'", "\\'").replace("\n", "\\n")
+                    val escapedData = data.replace("\\", "\\\\")
+                                          .replace("'", "\\'")
+                                          .replace("\n", "\\n")
+                                          .replace("\r", "\\r")
                     webView?.evaluateJavascript("if(typeof window.onCloudResult==='function')window.onCloudResult(true, 'Restore Success', '$escapedData');", null)
                 }.onFailure { e ->
                     Toast.makeText(this@MainActivity, "Restore Failed: ${e.message}", Toast.LENGTH_LONG).show()
