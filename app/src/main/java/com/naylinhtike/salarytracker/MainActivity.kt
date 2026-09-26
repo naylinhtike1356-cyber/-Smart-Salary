@@ -169,6 +169,10 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        /** Check if running inside Android native app WebView */
+        @JavascriptInterface
+        fun isNativeApp(): Boolean = true
+
         /** 4.3 - Save binary backup (base64) for Excel export */
         @JavascriptInterface
         fun saveBackupBase64(base64Data: String, filename: String): Boolean {

@@ -6,6 +6,11 @@
     <title>နေ့စဉ် အလုပ်ချိန်နှင့် လစာမှတ်တမ်း</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24' fill='none' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10' stroke='%233b82f6'%3E%3C/circle%3E%3Cpolyline points='12 6 12 12' stroke='%233b82f6'%3E%3C/polyline%3E%3Ccircle cx='12' cy='12' r='3' stroke='%2310b981'%3E%3C/circle%3E%3C/svg%3E">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        if (window.location.protocol === 'file:' || (window.navigator && window.navigator.userAgent && (window.navigator.userAgent.includes('wv') || window.navigator.userAgent.includes('Android')) && !window.location.hostname.includes('vercel.app') && !window.location.hostname.includes('localhost'))) {
+            document.documentElement.classList.add('is-native-app');
+        }
+    </script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="https://npmcdn.com/flatpickr/dist/themes/material_blue.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -25,6 +30,12 @@
         .nav-button.active {
             background-color: #3b82f6; /* blue-500 */
             color: white;
+        }
+
+                /* Hide APK download elements when running inside native mobile app */
+        .is-native-app #app-download-banner,
+        .is-native-app #settings-download-apk-container {
+            display: none !important;
         }
 
         .btn-glow {
@@ -255,8 +266,11 @@
         };
 
         // Web Bridge Fallback for browser environment
+        document.documentElement.classList.remove('is-native-app');
         if (!window.AndroidBridge) {
             window.AndroidBridge = {
+                isWebMock: true,
+                isNativeApp: function() { return false; },
                 getEntryMode: function() {
                     return localStorage.getItem('web_entry_mode') || 'NONE';
                 },
@@ -1346,7 +1360,7 @@
                             <span id="app-credit-text">ပြင်ဆင်ထိန်းသိမ်းသူ</span> - <span class="font-bold text-slate-700">Nay Lin Htike</span><br>
                             © 2026 All Rights Reserved
                         </p>
-                        <div class="pt-2 w-full max-w-xs">
+                        <div id="settings-download-apk-container" class="pt-2 w-full max-w-xs">
                             <a href="SmartSalaryTracker.apk" download="SmartSalaryTracker.apk" class="flex items-center justify-center gap-2 w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 px-4 rounded-xl text-xs transition shadow-md">
                                 <i data-lucide="download" class="w-4 h-4 text-emerald-400"></i>
                                 <span id="lbl-settings-download-apk">Android App (APK) ဒေါင်းလုဒ်</span>
@@ -3332,6 +3346,23 @@
             id: { headerTitle: "Catatan Gaji", daysUnit: "hari", hoursUnit: "jam", salaryLabel: "Estimasi Gaji", btnToday: "⚡ Hari Ini", btnCopy: "📋 Seperti Kemarin" }
         };
 
+        const updateDownloadBannerVisibility = () => {
+            const isNative = (window.location.protocol === 'file:' || (window.AndroidBridge && !window.AndroidBridge.isWebMock));
+            if (isNative) {
+                document.documentElement.classList.add('is-native-app');
+                const banner = getElement('app-download-banner');
+                if (banner) banner.classList.add('hidden');
+                const sContainer = getElement('settings-download-apk-container');
+                if (sContainer) sContainer.classList.add('hidden');
+            } else {
+                document.documentElement.classList.remove('is-native-app');
+                const banner = getElement('app-download-banner');
+                if (banner) banner.classList.remove('hidden');
+                const sContainer = getElement('settings-download-apk-container');
+                if (sContainer) sContainer.classList.remove('hidden');
+            }
+        };
+
         const syncWidgetData = () => {
             if (!window.AndroidBridge) return;
             const curLang = (typeof getCurrentLang === 'function') ? getCurrentLang() : (localStorage.getItem('app_language') || 'my');
@@ -3926,6 +3957,7 @@
 
         // --- MAIN RENDER FUNCTION ---
         const render = () => {
+            updateDownloadBannerVisibility();
             const activeView = document.querySelector('.nav-button.active').dataset.view;
             Object.values(elements.views).forEach(view => view.classList.toggle('hidden', view.id !== activeView));
             if (activeView === 'calendar-view') {
