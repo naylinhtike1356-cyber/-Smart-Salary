@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1920" viewBox="0 0 1080 1920">
+  <rect width="1080" height="1920" fill="#F5F8FC"/><rect x="0" y="0" width="1080" height="22" fill="#1769E0"/>
+  <rect x="72" y="68" width="62" height="62" rx="14.26" fill="#fff" stroke="#DCE5F0" stroke-width="2"/>
+  <circle cx="98.04" cy="99" r="17.98" fill="#E9F2FF" stroke="#1769E0" stroke-width="3.41"/>
+  <line x1="98.04" y1="99" x2="98.04" y2="88.46" stroke="#0B1736" stroke-width="3" stroke-linecap="round"/>
+  <line x1="98.04" y1="99" x2="106.72" y2="103.96" stroke="#0B1736" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="98.04" cy="99" r="3" fill="#19C7C9"/>
+  <circle cx="117.88" cy="111.4" r="11.78" fill="#FFB547" stroke="#D99420" stroke-width="2"/>
+  <text x="117.88" y="115.74000000000001" text-anchor="middle" font-family="Arial, sans-serif" font-size="14.26" font-weight="800" fill="#0B1736">₩</text>
+    <text x="152" y="95" font-family="Arial, sans-serif" font-size="22" font-weight="800" fill="#0B1736">SMART SALARY</text>
+    <text x="152" y="121" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#1769E0">TRACKER</text>
+    <line x1="870" y1="98" x2="1010" y2="98" stroke="#DCE5F0" stroke-width="3"/>
+    <circle cx="1010" cy="98" r="7" fill="#19C7C9"/>
+  <rect x="70" y="190" width="210" height="40" rx="20" fill="#1769E0"/><text x="175" y="216" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="800" fill="#fff">PAYSLIP</text>
+  <text x="70" y="315" text-anchor="start" font-family="Myanmar Text, Noto Sans Myanmar, Malgun Gothic, sans-serif" font-size="64" font-weight="800" fill="#0B1736">လစဉ်လစာရှင်းတမ်း</text>
+<text x="70" y="395" text-anchor="start" font-family="Myanmar Text, Noto Sans Myanmar, Malgun Gothic, sans-serif" font-size="64" font-weight="800" fill="#0B1736">တစ်နေရာတည်းမှာ</text>
+  <text x="70" y="505" text-anchor="start" font-family="Myanmar Text, Noto Sans Myanmar, Malgun Gothic, sans-serif" font-size="28" font-weight="600" fill="#65738A">ဝင်ငွေ၊ OT၊ ဖြတ်တောက်မှုနဲ့</text>
+<text x="70" y="547" text-anchor="start" font-family="Myanmar Text, Noto Sans Myanmar, Malgun Gothic, sans-serif" font-size="28" font-weight="600" fill="#65738A">ခန့်မှန်းအသားတင်လစာကို စုစည်းကြည့်ပါ</text>
+  <rect x="236" y="666" width="608" height="928" rx="54" fill="#0B1736" opacity="0.12"/>
+  <rect x="250" y="680" width="580" height="900" rx="45" fill="#0B1736"/>
+  <rect x="264" y="694" width="552" height="872" rx="34" fill="#F8FAFD"/>
+  <rect x="493" y="704" width="94" height="10" rx="5" fill="#253558"/>
+  <rect x="280" y="734" width="520" height="56" rx="15" fill="#1769E0"/>
+  <text x="298" y="769" font-family="Myanmar Text, sans-serif" font-size="18" font-weight="700" fill="#fff">လစာမှတ်တမ်း</text>
+  <rect x="280" y="810" width="520" height="430" rx="20" fill="#fff" stroke="#DCE5F0"/><text x="540" y="852" text-anchor="middle" font-family="Myanmar Text, sans-serif" font-size="16" font-weight="700" fill="#0B1736">အောက်တိုဘာ လစာရှင်းတမ်း</text><line x1="300" y1="872" x2="780" y2="872" stroke="#DCE5F0" stroke-dasharray="5 7"/><text x="300" y="912" font-family="Myanmar Text, sans-serif" font-size="17" fill="#65738A">အခြေခံလစာ</text><text x="780" y="912" text-anchor="end" font-family="Arial, sans-serif" font-size="18" font-weight="800" fill="#172033">₩2,300,000</text><text x="300" y="967" font-family="Myanmar Text, sans-serif" font-size="17" fill="#65738A">OT</text><text x="780" y="967" text-anchor="end" font-family="Arial, sans-serif" font-size="18" font-weight="800" fill="#172033">+ ₩420,000</text><text x="300" y="1022" font-family="Myanmar Text, sans-serif" font-size="17" fill="#65738A">ညဆိုင်း</text><text x="780" y="1022" text-anchor="end" font-family="Arial, sans-serif" font-size="18" font-weight="800" fill="#172033">+ ₩120,000</text><text x="300" y="1077" font-family="Myanmar Text, sans-serif" font-size="17" fill="#65738A">ဖြတ်တောက်မှု</text><text x="780" y="1077" text-anchor="end" font-family="Arial, sans-serif" font-size="18" font-weight="800" fill="#FF6B5D">- ₩186,000</text><rect x="298" y="1110" width="484" height="105" rx="16" fill="#EAF2FF"/><text x="540" y="1146" text-anchor="middle" font-family="Myanmar Text, sans-serif" font-size="16" font-weight="700" fill="#1769E0">ခန့်မှန်းအသားတင်လစာ</text><text x="540" y="1190" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="800" fill="#0B1736">₩2,654,000</text>
+  <rect x="70" y="1660" width="940" height="112" rx="28" fill="#0B1736"/><text x="540" y="1705" text-anchor="middle" font-family="Myanmar Text, sans-serif" font-size="24" font-weight="700" fill="#fff">အလုပ်ချိန်ကိုမှတ် • လစာကိုသိ</text><text x="540" y="1746" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#19C7C9">webdist-puce.vercel.app</text>
+  <text x="70" y="1848" font-family="Arial, sans-serif" font-size="20" font-weight="700" fill="#65738A">BRAND OVERVIEW  04 / 05</text><text x="1010" y="1848" text-anchor="end" font-family="Arial, sans-serif" font-size="20" font-weight="700" fill="#1769E0">@SMART SALARY TRACKER</text>
+  </svg>

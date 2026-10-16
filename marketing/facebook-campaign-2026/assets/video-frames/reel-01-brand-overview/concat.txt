@@ -1,0 +1,11 @@
+file 'C:\Users\nayli\AndroidStudioProjects\SalaryTracker\marketing\facebook-campaign-2026\assets\video-frames\reel-01-brand-overview\frame-01.png'
+duration 3.5
+file 'C:\Users\nayli\AndroidStudioProjects\SalaryTracker\marketing\facebook-campaign-2026\assets\video-frames\reel-01-brand-overview\frame-02.png'
+duration 3.5
+file 'C:\Users\nayli\AndroidStudioProjects\SalaryTracker\marketing\facebook-campaign-2026\assets\video-frames\reel-01-brand-overview\frame-03.png'
+duration 3.5
+file 'C:\Users\nayli\AndroidStudioProjects\SalaryTracker\marketing\facebook-campaign-2026\assets\video-frames\reel-01-brand-overview\frame-04.png'
+duration 3.5
+file 'C:\Users\nayli\AndroidStudioProjects\SalaryTracker\marketing\facebook-campaign-2026\assets\video-frames\reel-01-brand-overview\frame-05.png'
+duration 3.5
+file 'C:\Users\nayli\AndroidStudioProjects\SalaryTracker\marketing\facebook-campaign-2026\assets\video-frames\reel-01-brand-overview\frame-05.png'

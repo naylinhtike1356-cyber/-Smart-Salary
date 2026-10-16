@@ -1,0 +1,13 @@
+file 'C:\Users\nayli\AndroidStudioProjects\SalaryTracker\marketing\facebook-campaign-2026\assets\video-frames\reel-02-how-to-use\frame-01.png'
+duration 3.5
+file 'C:\Users\nayli\AndroidStudioProjects\SalaryTracker\marketing\facebook-campaign-2026\assets\video-frames\reel-02-how-to-use\frame-02.png'
+duration 3.5
+file 'C:\Users\nayli\AndroidStudioProjects\SalaryTracker\marketing\facebook-campaign-2026\assets\video-frames\reel-02-how-to-use\frame-03.png'
+duration 3.5
+file 'C:\Users\nayli\AndroidStudioProjects\SalaryTracker\marketing\facebook-campaign-2026\assets\video-frames\reel-02-how-to-use\frame-04.png'
+duration 3.5
+file 'C:\Users\nayli\AndroidStudioProjects\SalaryTracker\marketing\facebook-campaign-2026\assets\video-frames\reel-02-how-to-use\frame-05.png'
+duration 3.5
+file 'C:\Users\nayli\AndroidStudioProjects\SalaryTracker\marketing\facebook-campaign-2026\assets\video-frames\reel-02-how-to-use\frame-06.png'
+duration 3.5
+file 'C:\Users\nayli\AndroidStudioProjects\SalaryTracker\marketing\facebook-campaign-2026\assets\video-frames\reel-02-how-to-use\frame-06.png'

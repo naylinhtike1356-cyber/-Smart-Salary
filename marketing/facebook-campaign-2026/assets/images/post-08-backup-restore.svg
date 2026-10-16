@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080" viewBox="0 0 1080 1080">
+  <rect width="1080" height="1080" fill="#F5F8FC"/>
+  <rect x="0" y="0" width="18" height="1080" fill="#16A36A"/>
+  <path d="M 35 1010 H 520" stroke="#16A36A" stroke-width="10"/><path d="M 35 1038 H 340" stroke="#0B1736" stroke-width="4"/>
+  <rect x="70" y="64" width="72" height="72" rx="16.560000000000002" fill="#fff" stroke="#DCE5F0" stroke-width="2"/>
+  <circle cx="100.24" cy="100" r="20.88" fill="#E9F2FF" stroke="#1769E0" stroke-width="3.96"/>
+  <line x1="100.24" y1="100" x2="100.24" y2="87.76" stroke="#0B1736" stroke-width="3.2399999999999998" stroke-linecap="round"/>
+  <line x1="100.24" y1="100" x2="110.32" y2="105.76" stroke="#0B1736" stroke-width="3.2399999999999998" stroke-linecap="round"/>
+  <circle cx="100.24" cy="100" r="3.2399999999999998" fill="#19C7C9"/>
+  <circle cx="123.28" cy="114.4" r="13.68" fill="#FFB547" stroke="#D99420" stroke-width="2.016"/>
+  <text x="123.28" y="119.44" text-anchor="middle" font-family="Arial, sans-serif" font-size="16.560000000000002" font-weight="800" fill="#0B1736">₩</text>
+    <text x="160" y="91" font-family="Arial, sans-serif" font-size="24" font-weight="800" fill="#0B1736">SMART SALARY</text>
+    <text x="160" y="117" font-family="Arial, sans-serif" font-size="20" font-weight="700" fill="#1769E0">TRACKER</text>
+    <line x1="870" y1="94" x2="1010" y2="94" stroke="#DCE5F0" stroke-width="3"/>
+    <circle cx="1010" cy="94" r="7" fill="#19C7C9"/>
+  <rect x="70" y="184" width="196" height="36" rx="18" fill="#16A36A"/><text x="168" y="208" text-anchor="middle" font-family="Arial, Myanmar Text, sans-serif" font-size="14" font-weight="800" fill="#fff">DATA SAFETY</text>
+  <text x="70" y="264" text-anchor="start" font-family="Myanmar Text, Noto Sans Myanmar, Malgun Gothic, sans-serif" font-size="22" font-weight="800" fill="#16A36A">ကိုယ့်မှတ်တမ်းကို ကာကွယ်ပါ</text>
+  <text x="70" y="330" text-anchor="start" font-family="Myanmar Text, Noto Sans Myanmar, Malgun Gothic, sans-serif" font-size="50" font-weight="800" fill="#0B1736">Backup သိမ်းပါ</text>
+<text x="70" y="391" text-anchor="start" font-family="Myanmar Text, Noto Sans Myanmar, Malgun Gothic, sans-serif" font-size="50" font-weight="800" fill="#0B1736">လိုအပ်ရင် Restore</text>
+  <text x="70" y="485" text-anchor="start" font-family="Myanmar Text, Noto Sans Myanmar, Malgun Gothic, sans-serif" font-size="22" font-weight="600" fill="#65738A">ဖုန်းပြောင်းလဲရင်လည်း မှတ်တမ်းတွေ</text>
+<text x="70" y="518" text-anchor="start" font-family="Myanmar Text, Noto Sans Myanmar, Malgun Gothic, sans-serif" font-size="22" font-weight="600" fill="#65738A">ပြန်ယူနိုင်ဖို့ လစဉ် Backup လုပ်ထားပါ</text>
+  <rect x="70" y="614" width="470" height="190" rx="24" fill="#fff" stroke="#DCE5F0"/>
+  <text x="102" y="658" font-family="Myanmar Text, sans-serif" font-size="15" font-weight="700" fill="#16A36A">WHY IT MATTERS</text>
+  <text x="102" y="704" text-anchor="start" font-family="Myanmar Text, Noto Sans Myanmar, Malgun Gothic, sans-serif" font-size="20" font-weight="700" fill="#172033">• အနည်းဆုံး လစဉ်တစ်ကြိမ်</text>
+<text x="102" y="735" text-anchor="start" font-family="Myanmar Text, Noto Sans Myanmar, Malgun Gothic, sans-serif" font-size="20" font-weight="700" fill="#172033">• လုံခြုံတဲ့နေရာမှာ သိမ်း</text>
+<text x="102" y="766" text-anchor="start" font-family="Myanmar Text, Noto Sans Myanmar, Malgun Gothic, sans-serif" font-size="20" font-weight="700" fill="#172033">• ဖုန်းပြောင်းလည်း ပြန်ယူနိုင်</text>
+  <rect x="70" y="852" width="470" height="70" rx="18" fill="#0B1736"/><text x="305" y="883" text-anchor="middle" font-family="Myanmar Text, sans-serif" font-size="15" font-weight="700" fill="#fff">စမ်းသုံးရန်</text><text x="305" y="907" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#19C7C9">webdist-puce.vercel.app</text>
+  <rect x="606" y="198" width="388" height="772" rx="54" fill="#0B1736" opacity="0.12"/>
+  <rect x="620" y="212" width="360" height="744" rx="45" fill="#0B1736"/>
+  <rect x="634" y="226" width="332" height="716" rx="34" fill="#F8FAFD"/>
+  <rect x="753" y="236" width="94" height="10" rx="5" fill="#253558"/>
+  <rect x="650" y="266" width="300" height="56" rx="15" fill="#16A36A"/>
+  <text x="668" y="301" font-family="Myanmar Text, sans-serif" font-size="18" font-weight="700" fill="#fff">လစာမှတ်တမ်း</text>
+  <circle cx="800" cy="477" r="94" fill="#E8F8F1"/><path d="M 736 497 C 740 458, 772 440, 801 451 C 817 418, 874 425, 884 465 C 926 462, 941 519, 898 533 L 755 533 C 720 530, 710 507, 736 497 Z" fill="#16A36A"/><path d="M 816 514 L 816 466 L 795 487 M 816 466 L 837 487" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="674" cy="614" r="22" fill="#16A36A"/><text x="674" y="621" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="800" fill="#fff">1</text><text x="710" y="621" font-family="Myanmar Text, sans-serif" font-size="14" font-weight="700" fill="#172033">Backup ဖိုင်ထုတ်ပါ</text><circle cx="674" cy="694" r="22" fill="#1769E0"/><text x="674" y="701" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="800" fill="#fff">2</text><text x="710" y="701" font-family="Myanmar Text, sans-serif" font-size="14" font-weight="700" fill="#172033">လုံခြုံတဲ့နေရာမှာသိမ်းပါ</text><circle cx="674" cy="774" r="22" fill="#FFB547"/><text x="674" y="781" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="800" fill="#fff">3</text><text x="710" y="781" font-family="Myanmar Text, sans-serif" font-size="14" font-weight="700" fill="#172033">လိုအပ်ရင် Restore ပြန်လုပ်ပါ</text>
+  </svg>
