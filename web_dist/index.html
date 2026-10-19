@@ -129,7 +129,7 @@
                 try {
                     const tokenClient = google.accounts.oauth2.initTokenClient({
                         client_id: clientId,
-                        scope: 'https://www.googleapis.com/auth/drive.appdata',
+                        scope: 'openid email profile https://www.googleapis.com/auth/drive.appdata',
                         callback: (tokenResponse) => {
                             if (tokenResponse.error) {
                                 onError('Login Error: ' + tokenResponse.error_description);
@@ -140,15 +140,14 @@
                             this.fetchUserInfo(this.accessToken, (userInfo) => {
                                 localStorage.setItem('web_logged_in', 'true');
                                 localStorage.setItem('web_user_name', userInfo.name || 'Google User');
-                                localStorage.setItem('web_user_email', userInfo.email || 'user@gmail.com');
+                                localStorage.setItem('web_user_email', userInfo.email || '');
+                                localStorage.setItem('web_user_id', userInfo.sub);
                                 localStorage.setItem('web_login_type', 'real');
                                 callback();
-                            }, () => {
-                                localStorage.setItem('web_logged_in', 'true');
-                                localStorage.setItem('web_user_name', 'Google User');
-                                localStorage.setItem('web_user_email', 'user@gmail.com');
-                                localStorage.setItem('web_login_type', 'real');
-                                callback();
+                            }, (error) => {
+                                this.accessToken = null;
+                                sessionStorage.removeItem('web_google_access_token');
+                                onError(error || 'Google account information could not be verified.');
                             });
                         }
                     });
@@ -162,11 +161,17 @@
                 fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
                     headers: { 'Authorization': 'Bearer ' + token }
                 })
-                .then(res => res.json())
-                .then(data => onSuccess(data))
+                .then(res => {
+                    if (!res.ok) throw new Error('User info status ' + res.status);
+                    return res.json();
+                })
+                .then(data => {
+                    if (!data.sub) throw new Error('Google account ID is missing');
+                    onSuccess(data);
+                })
                 .catch(err => {
                     console.error('Fetch user info error', err);
-                    onError();
+                    onError('Google account information could not be verified. Please sign in again.');
                 });
             },
             
@@ -265,6 +270,17 @@
             }
         };
 
+        // Remove credentials created by the retired mock-login flow.
+        if (localStorage.getItem('web_login_type') === 'mock' ||
+            (localStorage.getItem('web_login_type') === 'real' && !localStorage.getItem('web_user_id'))) {
+            ['web_logged_in', 'web_user_email', 'web_user_name', 'web_user_id', 'web_login_type']
+                .forEach(key => localStorage.removeItem(key));
+            sessionStorage.removeItem('web_google_access_token');
+        }
+        localStorage.removeItem('web_saved_accounts');
+        localStorage.removeItem('web_cloud_backup');
+        localStorage.removeItem('salary_backup_pending');
+
         // Web Bridge Fallback for browser environment
         document.documentElement.classList.remove('is-native-app');
         if (!window.AndroidBridge) {
@@ -293,6 +309,7 @@
                     localStorage.removeItem('web_logged_in');
                     localStorage.removeItem('web_user_email');
                     localStorage.removeItem('web_user_name');
+                    localStorage.removeItem('web_user_id');
                     localStorage.removeItem('web_login_type');
                     sessionStorage.removeItem('web_google_access_token');
                     GoogleDriveWebHelper.accessToken = null;
@@ -310,9 +327,7 @@
                 scheduleAutoBackup: function(enabled, dayOfMonth, timeHHmm) {
                     showToast(`Auto Backup ${enabled ? 'ဖွင့်' : 'ပိတ်'}လိုက်ပါပြီ (လစဉ် ${dayOfMonth} ရက်နေ့၊ ${timeHHmm})`, 'success');
                 },
-                storeBackupCopy: function(jsonData) {
-                    localStorage.setItem('salary_backup_pending', jsonData);
-                },
+                storeBackupCopy: function() {},
                 updateWidgetSummary: function(summaryText) {
                     console.log("Widget Summary updated:", summaryText);
                 },
@@ -363,163 +378,53 @@
                     }
                 },
                 backupToCloud: function(jsonData) {
-                    const loginType = localStorage.getItem('web_login_type') || 'mock';
-                    if (loginType === 'mock') {
-                        localStorage.setItem('web_cloud_backup', jsonData);
-                        showToast('Backup သိမ်းဆည်းပြီးပါပြီ (Local Browser Cloud)', 'success');
-                        setTimeout(() => {
-                            showToast('ဖုန်းပြောင်းလျှင် ဒေတာမပျောက်စေရန် Export Data (JSON/CSV) ထုတ်ယူသိမ်းဆည်းထားပါခင်ဗျာ။', 'info');
-                        }, 1200);
+                    if (localStorage.getItem('web_login_type') !== 'real' ||
+                        localStorage.getItem('web_logged_in') !== 'true') {
+                        const message = 'Google Sign-In အစစ်ဖြင့် ဝင်ပြီးမှ Google Drive Backup ကို အသုံးပြုနိုင်ပါသည်။';
+                        showToast(message, 'error');
+                        if (typeof window.onCloudResult === 'function') {
+                            window.onCloudResult(false, message, null);
+                        }
+                        return;
+                    }
+                    showToast('Google Drive သို့ Backup တင်နေပါသည်...', 'info');
+                    GoogleDriveWebHelper.backup(jsonData, () => {
+                        showToast('Google Drive သို့ Backup တင်ခြင်း အောင်မြင်ပါသည်', 'success');
                         if (typeof window.onCloudResult === 'function') {
                             window.onCloudResult(true, 'Backup Success', null);
                         }
-                    } else {
-                        const clientId = GoogleDriveWebHelper.getClientId();
-                        if (!clientId) {
-                            showToast('Google Client ID ကို settings တွင် အရင်ထည့်သွင်းပေးပါခင်ဗျာ။', 'error');
-                            if (typeof window.onCloudResult === 'function') {
-                                window.onCloudResult(false, 'No Client ID', null);
-                            }
-                            return;
+                    }, (err) => {
+                        showToast(err, 'error');
+                        if (typeof window.onCloudResult === 'function') {
+                            window.onCloudResult(false, err, null);
                         }
-                        showToast('Google Drive သို့ Backup တင်နေပါသည်...', 'info');
-                        GoogleDriveWebHelper.backup(jsonData, () => {
-                            showToast('Google Drive သို့ Backup တင်ခြင်း အောင်မြင်ပါသည်', 'success');
-                            if (typeof window.onCloudResult === 'function') {
-                                window.onCloudResult(true, 'Backup Success', null);
-                            }
-                        }, (err) => {
-                            showToast(err, 'error');
-                            if (typeof window.onCloudResult === 'function') {
-                                window.onCloudResult(false, err, null);
-                            }
-                        });
-                    }
+                    });
                 },
                 restoreFromCloud: function() {
-                    const loginType = localStorage.getItem('web_login_type') || 'mock';
-                    if (loginType === 'mock') {
-                        const data = localStorage.getItem('web_cloud_backup');
-                        if (data) {
-                            showToast('Backup ဒေတာများ ပြန်ယူပြီးပါပြီ (Local Browser Cloud)', 'success');
-                            if (typeof window.onCloudResult === 'function') {
-                                window.onCloudResult(true, 'Restore Success', data);
-                            }
-                        } else {
-                            showToast('Local Browser Cloud တွင် Backup ဒေတာ မတွေ့ပါ။', 'error');
-                            if (typeof window.onCloudResult === 'function') {
-                                window.onCloudResult(false, 'No backup found in cloud', null);
-                            }
+                    if (localStorage.getItem('web_login_type') !== 'real' ||
+                        localStorage.getItem('web_logged_in') !== 'true') {
+                        const message = 'Google Sign-In အစစ်ဖြင့် ဝင်ပြီးမှ Google Drive Restore ကို အသုံးပြုနိုင်ပါသည်။';
+                        showToast(message, 'error');
+                        if (typeof window.onCloudResult === 'function') {
+                            window.onCloudResult(false, message, null);
                         }
-                    } else {
-                        const clientId = GoogleDriveWebHelper.getClientId();
-                        if (!clientId) {
-                            showToast('Google Client ID ကို settings တွင် အရင်ထည့်သွင်းပေးပါခင်ဗျာ။', 'error');
-                            if (typeof window.onCloudResult === 'function') {
-                                window.onCloudResult(false, 'No Client ID', null);
-                            }
-                            return;
-                        }
-                        showToast('Google Drive မှ Restore လုပ်နေပါသည်...', 'info');
-                        GoogleDriveWebHelper.restore((data) => {
-                            showToast('Google Drive မှ Restore လုပ်ခြင်း အောင်မြင်ပါသည်', 'success');
-                            if (typeof window.onCloudResult === 'function') {
-                                window.onCloudResult(true, 'Restore Success', data);
-                            }
-                        }, (err) => {
-                            showToast(err, 'error');
-                            if (typeof window.onCloudResult === 'function') {
-                                window.onCloudResult(false, err, null);
-                            }
-                        });
+                        return;
                     }
+                    showToast('Google Drive မှ Restore လုပ်နေပါသည်...', 'info');
+                    GoogleDriveWebHelper.restore((data) => {
+                        showToast('Google Drive မှ Restore လုပ်ခြင်း အောင်မြင်ပါသည်', 'success');
+                        if (typeof window.onCloudResult === 'function') {
+                            window.onCloudResult(true, 'Restore Success', data);
+                        }
+                    }, (err) => {
+                        showToast(err, 'error');
+                        if (typeof window.onCloudResult === 'function') {
+                            window.onCloudResult(false, err, null);
+                        }
+                    });
                 }
             };
         }
-
-        // Helper to get saved accounts list from localStorage
-        window.getSavedAccounts = function() {
-            try {
-                const saved = localStorage.getItem('web_saved_accounts');
-                return saved ? JSON.parse(saved) : [
-                    { name: 'Nay Lin Htike', email: 'naylinhtike@gmail.com', avatarColor: 'from-blue-500 to-indigo-600', avatarChar: 'N' },
-                    { name: 'Guest User', email: 'guest@gmail.com', avatarColor: 'from-emerald-500 to-teal-600', avatarChar: 'G' }
-                ];
-            } catch (e) {
-                console.error("Error reading saved accounts:", e);
-                return [
-                    { name: 'Nay Lin Htike', email: 'naylinhtike@gmail.com', avatarColor: 'from-blue-500 to-indigo-600', avatarChar: 'N' },
-                    { name: 'Guest User', email: 'guest@gmail.com', avatarColor: 'from-emerald-500 to-teal-600', avatarChar: 'G' }
-                ];
-            }
-        };
-
-        // Helper to save/update an account in the saved list
-        window.saveAccount = function(name, email) {
-            try {
-                let accounts = window.getSavedAccounts();
-                accounts = accounts.filter(acc => acc.email.toLowerCase() !== email.toLowerCase());
-                const char = (name || email || 'U').charAt(0).toUpperCase();
-                const colors = [
-                    'from-blue-500 to-indigo-600',
-                    'from-emerald-500 to-teal-600',
-                    'from-purple-500 to-pink-600',
-                    'from-orange-500 to-red-600',
-                    'from-cyan-500 to-blue-600'
-                ];
-                const randomColor = colors[Math.floor(Math.random() * colors.length)];
-                accounts.unshift({
-                    name: name,
-                    email: email,
-                    avatarColor: randomColor,
-                    avatarChar: char
-                });
-                if (accounts.length > 5) accounts = accounts.slice(0, 5);
-                localStorage.setItem('web_saved_accounts', JSON.stringify(accounts));
-            } catch (e) {
-                console.error("Save account error:", e);
-            }
-        };
-
-        window.removeSavedAccount = function(email, event) {
-            try {
-                if (event) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                }
-                if (!confirm(`ဤအကောင့် (${email}) ကို စာရင်းမှ ဖျက်လိုပါသလား?`)) return;
-                let accounts = window.getSavedAccounts();
-                accounts = accounts.filter(acc => acc.email.toLowerCase() !== email.toLowerCase());
-                localStorage.setItem('web_saved_accounts', JSON.stringify(accounts));
-                const modal = document.getElementById('web-login-modal');
-                if (modal) {
-                    modal.remove();
-                    window.showWebLoginModal();
-                }
-            } catch (e) {
-                console.error("Error in removeSavedAccount:", e);
-                alert("Error removing account: " + e.message);
-            }
-        };
-
-        window.webLoginChoose = function(name, email) {
-            try {
-                window.saveAccount(name, email);
-                localStorage.setItem('web_logged_in', 'true');
-                localStorage.setItem('web_user_name', name);
-                localStorage.setItem('web_user_email', email);
-                localStorage.setItem('web_login_type', 'mock');
-                showToast(`Signed in as ${email}`, 'success');
-                const modal = document.getElementById('web-login-modal');
-                if (modal) modal.remove();
-                if (typeof window.checkAuthStatus === 'function') {
-                    window.checkAuthStatus();
-                }
-            } catch (e) {
-                console.error("Error in webLoginChoose:", e);
-                alert("Error during login selection: " + e.message);
-            }
-        };
 
         window.showWebLoginModal = function() {
             try {
@@ -530,67 +435,20 @@
                 modal.id = 'web-login-modal';
                 modal.className = 'fixed inset-0 bg-slate-900/60 z-[250] flex items-center justify-center p-4 backdrop-blur-sm';
                 
-                const accounts = window.getSavedAccounts();
-                let accountsHtml = '';
-                accounts.forEach(acc => {
-                    accountsHtml += `
-                        <div class="relative group">
-                            <button class="w-full flex items-center gap-3 p-3 rounded-2xl border border-slate-100 hover:bg-slate-50 hover:border-blue-300 transition-all text-left" onclick="window.webLoginChoose('${acc.name}', '${acc.email}')">
-                                <div class="w-10 h-10 rounded-full bg-gradient-to-tr ${acc.avatarColor} text-white flex items-center justify-center font-bold text-base shadow-sm">${acc.avatarChar}</div>
-                                <div class="flex-1 min-w-0 pr-8">
-                                    <div class="text-sm font-semibold text-slate-800 truncate">${acc.name}</div>
-                                    <div class="text-xs text-slate-400 truncate">${acc.email}</div>
-                                </div>
-                            </button>
-                            <button onclick="window.removeSavedAccount('${acc.email}', event)" class="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-full hover:bg-red-50 text-slate-300 hover:text-red-500 transition-colors z-[260]" title="စာရင်းမှဖျက်ရန်">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                            </button>
-                        </div>
-                    `;
-                });
-
                 modal.innerHTML = `
                     <div class="bg-white rounded-3xl shadow-2xl p-6 max-w-sm w-full border border-slate-100 space-y-6 transform scale-95 transition-all duration-300">
                         <div class="text-center space-y-2">
                             <div class="flex justify-center">
                                 <svg class="w-10 h-10" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.66l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
                             </div>
-                            <h3 class="text-lg font-bold text-slate-800">Google အကောင့် ရွေးချယ်ပါ</h3>
-                            <p class="text-xs text-slate-500">ဆက်လက်အသုံးပြုရန် အကောင့်တစ်ခု ရွေးပေးပါ</p>
-                        </div>
-                        
-                        <div class="space-y-2 max-h-60 overflow-y-auto pr-1">
-                            ${accountsHtml}
-                            
-                            <button id="web-login-use-another" class="w-full flex items-center gap-3 p-3 rounded-2xl border border-dashed border-slate-200 hover:bg-slate-50 transition-all text-left">
-                                <div class="w-10 h-10 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-base">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><line x1="19" y1="8" x2="19" y2="14"></line><line x1="22" y1="11" x2="16" y2="11"></line></svg>
-                                </div>
-                                <div class="flex-1">
-                                    <div class="text-sm font-semibold text-slate-800">အခြားအကောင့်ဖြင့် ဝင်မည်</div>
-                                    <div class="text-xs text-slate-400">စာရိုက်ထည့်သွင်းရန်</div>
-                                </div>
-                            </button>
-                        </div>
-                        
-                        <div id="web-login-custom-form" class="space-y-3 text-left hidden border-t border-slate-100 pt-4">
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-600 mb-1">နာမည်</label>
-                                <input type="text" id="web-login-name" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors" placeholder="နာမည်ထည့်ရန်">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-600 mb-1">Email</label>
-                                <input type="email" id="web-login-email" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors" placeholder="Email ထည့်ရန်">
-                            </div>
-                            <div class="flex gap-3 pt-2">
-                                <button id="web-login-submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 px-4 rounded-xl text-sm transition-colors shadow-md shadow-blue-200">Sign In</button>
-                            </div>
+                            <h3 class="text-lg font-bold text-slate-800">Google ဖြင့် လုံခြုံစွာဝင်မည်</h3>
+                            <p class="text-xs text-slate-500">Google OAuth အတည်ပြုစနစ်ကိုသာ အသုံးပြုပါသည်။ Email နှင့် password ကို App က မသိမ်းပါ။</p>
                         </div>
 
-                        <div class="border-t border-slate-100 pt-4 text-center">
+                        <div class="text-center">
                             <button id="web-login-real-oauth" class="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border border-slate-200 hover:bg-slate-50 text-xs font-semibold text-slate-600 hover:text-slate-800 transition-all shadow-sm">
                                 <svg class="w-4 h-4" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.66l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-                                Real Google Sign-In (OAuth သုံးရန်)
+                                Google ဖြင့် Sign In ဝင်မည်
                             </button>
                         </div>
                         
@@ -603,26 +461,12 @@
                 document.body.appendChild(modal);
 
                 document.getElementById('web-login-cancel').addEventListener('click', () => modal.remove());
-                document.getElementById('web-login-use-another').addEventListener('click', () => {
-                    document.getElementById('web-login-custom-form').classList.remove('hidden');
-                });
-                document.getElementById('web-login-submit').addEventListener('click', () => {
-                    const name = document.getElementById('web-login-name').value.trim() || 'Google User';
-                    const email = document.getElementById('web-login-email').value.trim();
-                    if (!email || !email.includes('@')) {
-                        alert('မှန်ကန်သော Email လိပ်စာ ထည့်သွင်းပေးပါ');
-                        return;
-                    }
-                    window.webLoginChoose(name, email);
-                });
                 document.getElementById('web-login-real-oauth').addEventListener('click', () => {
                     modal.remove();
                     showToast('Google OAuth စတင်နေပါသည်...', 'info');
                     GoogleDriveWebHelper.initTokenClient(() => {
                         showToast('Google Sign-In အောင်မြင်ပါသည်', 'success');
-                        if (typeof window.checkAuthStatus === 'function') {
-                            window.checkAuthStatus();
-                        }
+                        location.reload();
                     }, (err) => {
                         showToast(err, 'error');
                     });
@@ -3012,14 +2856,40 @@
         };
 
         // --- STATE MANAGEMENT ---
+        const LEGACY_STATE_STORAGE_KEY = 'dailySalaryTrackerState';
+        const BASIC_STATE_STORAGE_KEY = 'dailySalaryTrackerState:basic';
+        const getStateStorageKey = () => {
+            const isWeb = window.AndroidBridge && window.AndroidBridge.isWebMock === true;
+            if (!isWeb) return LEGACY_STATE_STORAGE_KEY;
+
+            const isVerifiedGoogleUser = localStorage.getItem('web_logged_in') === 'true' &&
+                localStorage.getItem('web_login_type') === 'real';
+            const userId = localStorage.getItem('web_user_id');
+            if (isVerifiedGoogleUser && userId) {
+                return `dailySalaryTrackerState:user:${userId.replace(/[^a-zA-Z0-9_-]/g, '')}`;
+            }
+            return BASIC_STATE_STORAGE_KEY;
+        };
+
+        const migrateLegacyWebState = () => {
+            if (!window.AndroidBridge || window.AndroidBridge.isWebMock !== true) return;
+            if (getStateStorageKey() !== BASIC_STATE_STORAGE_KEY) return;
+            if (!localStorage.getItem(BASIC_STATE_STORAGE_KEY)) {
+                const legacyState = localStorage.getItem(LEGACY_STATE_STORAGE_KEY);
+                if (legacyState) localStorage.setItem(BASIC_STATE_STORAGE_KEY, legacyState);
+            }
+            localStorage.removeItem(LEGACY_STATE_STORAGE_KEY);
+        };
+
         const saveState = () => {
-            localStorage.setItem('dailySalaryTrackerState', JSON.stringify(state));
+            localStorage.setItem(getStateStorageKey(), JSON.stringify(state));
             if (window.AndroidBridge && typeof window.AndroidBridge.storeBackupCopy === 'function') {
                 window.AndroidBridge.storeBackupCopy(JSON.stringify(state));
             }
         };
         const loadState = () => {
-            const stateString = localStorage.getItem('dailySalaryTrackerState');
+            migrateLegacyWebState();
+            const stateString = localStorage.getItem(getStateStorageKey());
             if (stateString) {
                  try {
                     const loadedState = JSON.parse(stateString);
@@ -3989,7 +3859,32 @@
                     const typeInfo = getWorkTypeInfo(entry.type);
                     const entryDiv = document.createElement('div');
                     entryDiv.className = 'flex justify-between items-center p-2 border-b border-slate-200';
-                    entryDiv.innerHTML = `<div class="flex-1"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${typeInfo.color}">${typeInfo.text}</span><p class="text-slate-500 text-xs mt-1">${entry.note || ''}</p></div><div class="text-right"><p class="text-sm font-semibold text-green-600">${formatKrw(entry.pay)}</p><p class="text-xs text-slate-500">${formatDuration(entry.durationMs)}</p></div><button data-id="${entry.id}" class="delete-btn-modal ml-4 text-red-500 hover:text-red-400">✖</button>`;
+
+                    const details = document.createElement('div');
+                    details.className = 'flex-1';
+                    const typeBadge = document.createElement('span');
+                    typeBadge.className = `px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${typeInfo.color}`;
+                    typeBadge.textContent = typeInfo.text;
+                    const note = document.createElement('p');
+                    note.className = 'text-slate-500 text-xs mt-1';
+                    note.textContent = String(entry.note || '');
+                    details.append(typeBadge, note);
+
+                    const totals = document.createElement('div');
+                    totals.className = 'text-right';
+                    const pay = document.createElement('p');
+                    pay.className = 'text-sm font-semibold text-green-600';
+                    pay.textContent = formatKrw(entry.pay);
+                    const duration = document.createElement('p');
+                    duration.className = 'text-xs text-slate-500';
+                    duration.textContent = formatDuration(entry.durationMs);
+                    totals.append(pay, duration);
+
+                    const deleteButton = document.createElement('button');
+                    deleteButton.dataset.id = String(entry.id);
+                    deleteButton.className = 'delete-btn-modal ml-4 text-red-500 hover:text-red-400';
+                    deleteButton.textContent = '✖';
+                    entryDiv.append(details, totals, deleteButton);
                     elements.modalContent.appendChild(entryDiv);
                 });
                 if (entries.some(e => e.type.includes('base') || e.type.includes('ot') || e.type.includes('night'))) {
@@ -4551,7 +4446,7 @@
                     // This is a restore result
                     try {
                         const normalizedState = robustParseAndNormalize(data);
-                        localStorage.setItem('dailySalaryTrackerState', JSON.stringify(normalizedState));
+                        localStorage.setItem(getStateStorageKey(), JSON.stringify(normalizedState));
                         loadState(); render();
                         showToast('Cloud မှ ဒေတာများ အောင်မြင်စွာ ရယူပြီးပါပြီ။');
                     } catch (e) {
@@ -4577,7 +4472,7 @@
                     const content = event.target.result;
                     const normalizedState = robustParseAndNormalize(content);
                     if (confirm('ဒေတာများကို အစားထိုး တင်သွင်းမှာ သေချာပါသလား?')) {
-                        localStorage.setItem('dailySalaryTrackerState', JSON.stringify(normalizedState));
+                        localStorage.setItem(getStateStorageKey(), JSON.stringify(normalizedState));
                         loadState(); 
                         render(); 
                         showToast('ဒေတာများ တင်သွင်းပြီးပါပြီ။', 'success');
@@ -4642,7 +4537,7 @@
             getElement('user-profile-section').classList.add('hidden');
             getElement('cloud-buttons-group').classList.add('hidden');
             getElement('upgrade-to-full-container').classList.remove('hidden');
-            getElement('cloud-status-text').textContent = 'Guest Mode (Local Storage Only)';
+            getElement('cloud-status-text').textContent = 'Basic Mode: ဤ browser/device ထဲတွင်သာ သိမ်းထားပါသည်';
             
             // Allow FAB, reminders and default times even in Basic Mode (runs offline)
             getElement('fab-today-btn').classList.remove('hidden');
@@ -4673,28 +4568,28 @@
         getElement('select-full-mode-btn').addEventListener('click', () => {
             if (window.AndroidBridge) {
                 window.AndroidBridge.setEntryMode('FULL');
-                handleEntryFlow();
+                location.reload();
             }
         });
 
         getElement('select-basic-mode-btn').addEventListener('click', () => {
             if (window.AndroidBridge) {
                 window.AndroidBridge.setEntryMode('BASIC');
-                handleEntryFlow();
+                location.reload();
             }
         });
 
         getElement('upgrade-to-full-btn').addEventListener('click', () => {
             if (window.AndroidBridge) {
                 window.AndroidBridge.setEntryMode('FULL');
-                handleEntryFlow();
+                location.reload();
             }
         });
 
         getElement('back-to-selection-btn').addEventListener('click', () => {
             if (window.AndroidBridge) {
                 window.AndroidBridge.setEntryMode('NONE');
-                handleEntryFlow();
+                location.reload();
             }
         });
 

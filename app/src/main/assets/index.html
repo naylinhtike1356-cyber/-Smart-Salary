@@ -3454,7 +3454,32 @@
                     const typeInfo = getWorkTypeInfo(entry.type);
                     const entryDiv = document.createElement('div');
                     entryDiv.className = 'flex justify-between items-center p-2 border-b border-slate-200';
-                    entryDiv.innerHTML = `<div class="flex-1"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${typeInfo.color}">${typeInfo.text}</span><p class="text-slate-500 text-xs mt-1">${entry.note || ''}</p></div><div class="text-right"><p class="text-sm font-semibold text-green-600">${formatKrw(entry.pay)}</p><p class="text-xs text-slate-500">${formatDuration(entry.durationMs)}</p></div><button data-id="${entry.id}" class="delete-btn-modal ml-4 text-red-500 hover:text-red-400">✖</button>`;
+
+                    const details = document.createElement('div');
+                    details.className = 'flex-1';
+                    const typeBadge = document.createElement('span');
+                    typeBadge.className = `px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${typeInfo.color}`;
+                    typeBadge.textContent = typeInfo.text;
+                    const note = document.createElement('p');
+                    note.className = 'text-slate-500 text-xs mt-1';
+                    note.textContent = String(entry.note || '');
+                    details.append(typeBadge, note);
+
+                    const totals = document.createElement('div');
+                    totals.className = 'text-right';
+                    const pay = document.createElement('p');
+                    pay.className = 'text-sm font-semibold text-green-600';
+                    pay.textContent = formatKrw(entry.pay);
+                    const duration = document.createElement('p');
+                    duration.className = 'text-xs text-slate-500';
+                    duration.textContent = formatDuration(entry.durationMs);
+                    totals.append(pay, duration);
+
+                    const deleteButton = document.createElement('button');
+                    deleteButton.dataset.id = String(entry.id);
+                    deleteButton.className = 'delete-btn-modal ml-4 text-red-500 hover:text-red-400';
+                    deleteButton.textContent = '✖';
+                    entryDiv.append(details, totals, deleteButton);
                     elements.modalContent.appendChild(entryDiv);
                 });
                 if (entries.some(e => e.type.includes('base') || e.type.includes('ot') || e.type.includes('night'))) {
