@@ -12,8 +12,12 @@ object AccountStorage {
     fun currentUserId(context: Context): String? =
         GoogleSignIn.getLastSignedInAccount(context)?.id?.takeIf { it.isNotBlank() }
 
-    fun currentScope(context: Context): String =
-        currentUserId(context)?.let { "user_${hash(it).take(24)}" } ?: "basic"
+    fun currentScope(context: Context): String {
+        val entryMode = context.getSharedPreferences("smart_reminder_prefs", Context.MODE_PRIVATE)
+            .getString("entry_mode", "NONE")
+        if (entryMode != "FULL") return "basic"
+        return currentUserId(context)?.let { "user_${hash(it).take(24)}" } ?: "basic"
+    }
 
     fun currentBackupFile(context: Context): File =
         File(context.filesDir, "salary_backup_pending_${currentScope(context)}.json")

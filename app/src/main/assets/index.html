@@ -2520,11 +2520,16 @@
         };
 
         const migrateLegacyStateToBasic = () => {
+            let migrated = false;
             if (!localStorage.getItem(BASIC_STATE_STORAGE_KEY)) {
                 const legacyState = localStorage.getItem(LEGACY_STATE_STORAGE_KEY);
-                if (legacyState) localStorage.setItem(BASIC_STATE_STORAGE_KEY, legacyState);
+                if (legacyState) {
+                    localStorage.setItem(BASIC_STATE_STORAGE_KEY, legacyState);
+                    migrated = true;
+                }
             }
             localStorage.removeItem(LEGACY_STATE_STORAGE_KEY);
+            return migrated;
         };
 
         const saveState = () => {
@@ -2534,7 +2539,10 @@
             }
         };
         const loadState = () => {
-            migrateLegacyStateToBasic();
+            const migratedLegacyState = migrateLegacyStateToBasic();
+            if (migratedLegacyState && window.AndroidBridge && typeof window.AndroidBridge.setEntryMode === 'function') {
+                window.AndroidBridge.setEntryMode('BASIC');
+            }
             const stateString = localStorage.getItem(getStateStorageKey());
             if (stateString) {
                  try {
@@ -2575,6 +2583,9 @@
             }
             const savedLang = localStorage.getItem('app_language') || (state.settings && state.settings.language) || 'my';
             applyTranslations(savedLang);
+            if (migratedLegacyState) {
+                setTimeout(() => showToast('လုံခြုံရေးအတွက် ယခင်ဒေတာကို Basic Mode သို့ ရွှေ့ထားပါသည်။', 'success'), 300);
+            }
         };
 
         // --- FLATPICKR ---

@@ -47,4 +47,4 @@ Production alias: `https://webdist-puce.vercel.app`
 - Android unit tests and debug APK assembly pass.
 - APK package/version are `com.naylinhtike.salarytracker` and `1.1.0 (2)`.
 - APK signer SHA-256 is `1846c60e2c0b5be5f81d4320abab429694775de21ffe5e01d64548949ad8bc2e`, matching the previously published APK.
-- Release APK SHA-256 is `35d260fcbe17275121130a4b4049739bc5ebe7341ad4c2c62dc374d7f0b15136` and matches `release.json`.
+- Release APK SHA-256 is `a5d7404e83f2c6fbac542e07b7afabe17bb3f11789239215cf5dfad58c359ae8` and matches `release.json`.
