@@ -37,6 +37,12 @@
         .is-native-app #settings-download-apk-container {
             display: none !important;
         }
+        #native-update-container {
+            display: none;
+        }
+        .is-native-app #native-update-container {
+            display: block;
+        }
 
         .btn-glow {
              transition: all 0.3s ease;
@@ -373,7 +379,7 @@
                         <div>
                             <p class="text-[10px] text-blue-600 font-semibold uppercase tracking-wider">Logged in as</p>
                             <h3 id="user-display-name" class="text-sm font-bold text-slate-900 leading-tight">User Name</h3>
-                            <p id="user-email" class="text-xs text-slate-500">user@email.com</p>
+                            <p id="user-email" class="text-xs text-slate-500"></p>
                         </div>
                     </div>
                     <button id="sign-out-btn" class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Sign Out">
@@ -817,7 +823,7 @@
                 <div class="mt-6 pt-5 border-t border-slate-200">
                     <div class="flex flex-col items-center justify-center text-center space-y-2">
                         <div class="flex items-center gap-2">
-                            <span class="px-2 py-0.5 bg-blue-100 text-blue-600 text-[10px] font-bold rounded-full uppercase tracking-wider">Version 1.0.0</span>
+                            <span id="app-version-badge" class="px-2 py-0.5 bg-blue-100 text-blue-600 text-[10px] font-bold rounded-full uppercase tracking-wider">Version 1.1.0</span>
                             <span class="px-2 py-0.5 bg-slate-100 text-slate-500 text-[10px] font-bold rounded-full uppercase tracking-wider">Stable Release</span>
                         </div>
                         <h4 class="text-xs font-bold text-slate-800">Smart Salary Tracker</h4>
@@ -830,6 +836,28 @@
                                 <i data-lucide="download" class="w-4 h-4 text-emerald-400"></i>
                                 <span id="lbl-settings-download-apk">Android App (APK) ဒေါင်းလုဒ်</span>
                             </a>
+                        </div>
+                        <div id="native-update-container" class="pt-2 w-full max-w-xs">
+                            <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-left space-y-2.5">
+                                <div class="flex items-center justify-between gap-3">
+                                    <div>
+                                        <p class="text-xs font-bold text-slate-800">App Update</p>
+                                        <p id="update-status-text" class="text-[10px] text-slate-500 mt-0.5">နောက်ဆုံး version ရှိမရှိ စစ်ဆေးနိုင်ပါသည်</p>
+                                    </div>
+                                    <i data-lucide="shield-check" class="w-5 h-5 text-emerald-600 shrink-0"></i>
+                                </div>
+                                <div class="grid grid-cols-1 gap-2">
+                                    <button type="button" id="check-update-btn" class="flex items-center justify-center gap-2 w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 px-4 rounded-xl text-xs transition shadow-sm">
+                                        <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                                        <span>Update စစ်မည်</span>
+                                    </button>
+                                    <button type="button" id="install-update-btn" class="hidden flex items-center justify-center gap-2 w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 px-4 rounded-xl text-xs transition shadow-sm">
+                                        <i data-lucide="download" class="w-4 h-4"></i>
+                                        <span>Update ဒေါင်းလုဒ်နှင့် Install</span>
+                                    </button>
+                                </div>
+                                <p class="text-[10px] text-slate-400">APK ကို HTTPS မှဒေါင်းလုဒ်ပြီး SHA-256 စစ်ဆေးပြီးမှ install screen ဖွင့်ပါမည်။</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -2477,14 +2505,37 @@
         };
 
         // --- STATE MANAGEMENT ---
+        const LEGACY_STATE_STORAGE_KEY = 'dailySalaryTrackerState';
+        const BASIC_STATE_STORAGE_KEY = 'dailySalaryTrackerState:basic';
+        const getStateStorageKey = () => {
+            const isVerifiedGoogleUser = window.AndroidBridge &&
+                typeof window.AndroidBridge.isLoggedIn === 'function' &&
+                window.AndroidBridge.isLoggedIn() &&
+                typeof window.AndroidBridge.getStorageScope === 'function';
+            const storageScope = isVerifiedGoogleUser ? window.AndroidBridge.getStorageScope() : '';
+            if (storageScope) {
+                return `dailySalaryTrackerState:${String(storageScope).replace(/[^a-zA-Z0-9_-]/g, '')}`;
+            }
+            return BASIC_STATE_STORAGE_KEY;
+        };
+
+        const migrateLegacyStateToBasic = () => {
+            if (!localStorage.getItem(BASIC_STATE_STORAGE_KEY)) {
+                const legacyState = localStorage.getItem(LEGACY_STATE_STORAGE_KEY);
+                if (legacyState) localStorage.setItem(BASIC_STATE_STORAGE_KEY, legacyState);
+            }
+            localStorage.removeItem(LEGACY_STATE_STORAGE_KEY);
+        };
+
         const saveState = () => {
-            localStorage.setItem('dailySalaryTrackerState', JSON.stringify(state));
+            localStorage.setItem(getStateStorageKey(), JSON.stringify(state));
             if (window.AndroidBridge && typeof window.AndroidBridge.storeBackupCopy === 'function') {
                 window.AndroidBridge.storeBackupCopy(JSON.stringify(state));
             }
         };
         const loadState = () => {
-            const stateString = localStorage.getItem('dailySalaryTrackerState');
+            migrateLegacyStateToBasic();
+            const stateString = localStorage.getItem(getStateStorageKey());
             if (stateString) {
                  try {
                     const loadedState = JSON.parse(stateString);
@@ -4041,7 +4092,7 @@
                     // This is a restore result
                     try {
                         const normalizedState = robustParseAndNormalize(data);
-                        localStorage.setItem('dailySalaryTrackerState', JSON.stringify(normalizedState));
+                        localStorage.setItem(getStateStorageKey(), JSON.stringify(normalizedState));
                         loadState(); render();
                         showToast('Cloud မှ ဒေတာများ အောင်မြင်စွာ ရယူပြီးပါပြီ။');
                     } catch (e) {
@@ -4067,7 +4118,7 @@
                     const content = event.target.result;
                     const normalizedState = robustParseAndNormalize(content);
                     if (confirm('ဒေတာများကို အစားထိုး တင်သွင်းမှာ သေချာပါသလား?')) {
-                        localStorage.setItem('dailySalaryTrackerState', JSON.stringify(normalizedState));
+                        localStorage.setItem(getStateStorageKey(), JSON.stringify(normalizedState));
                         loadState(); 
                         render(); 
                         showToast('ဒေတာများ တင်သွင်းပြီးပါပြီ။', 'success');
@@ -4132,7 +4183,7 @@
             getElement('user-profile-section').classList.add('hidden');
             getElement('cloud-buttons-group').classList.add('hidden');
             getElement('upgrade-to-full-container').classList.remove('hidden');
-            getElement('cloud-status-text').textContent = 'Guest Mode (Local Storage Only)';
+            getElement('cloud-status-text').textContent = 'Basic Mode: ဤဖုန်းထဲတွင်သာ သိမ်းထားပါသည်';
             
             // Allow FAB, reminders and default times even in Basic Mode (runs offline)
             getElement('fab-today-btn').classList.remove('hidden');
@@ -4163,28 +4214,28 @@
         getElement('select-full-mode-btn').addEventListener('click', () => {
             if (window.AndroidBridge) {
                 window.AndroidBridge.setEntryMode('FULL');
-                handleEntryFlow();
+                location.reload();
             }
         });
 
         getElement('select-basic-mode-btn').addEventListener('click', () => {
             if (window.AndroidBridge) {
                 window.AndroidBridge.setEntryMode('BASIC');
-                handleEntryFlow();
+                location.reload();
             }
         });
 
         getElement('upgrade-to-full-btn').addEventListener('click', () => {
             if (window.AndroidBridge) {
                 window.AndroidBridge.setEntryMode('FULL');
-                handleEntryFlow();
+                location.reload();
             }
         });
 
         getElement('back-to-selection-btn').addEventListener('click', () => {
             if (window.AndroidBridge) {
                 window.AndroidBridge.setEntryMode('NONE');
-                handleEntryFlow();
+                location.reload();
             }
         });
 
@@ -4201,6 +4252,60 @@
                 }
             }
         });
+
+        const appVersionBadge = getElement('app-version-badge');
+        const updateStatusText = getElement('update-status-text');
+        const checkUpdateBtn = getElement('check-update-btn');
+        const installUpdateBtn = getElement('install-update-btn');
+        if (window.AndroidBridge && typeof window.AndroidBridge.getAppVersionName === 'function') {
+            appVersionBadge.textContent = `Version ${window.AndroidBridge.getAppVersionName()}`;
+        }
+
+        if (checkUpdateBtn) {
+            checkUpdateBtn.addEventListener('click', () => {
+                if (!window.AndroidBridge || typeof window.AndroidBridge.checkForUpdate !== 'function') {
+                    showToast('Update စစ်ဆေးမှုကို Android App ထဲတွင်သာ အသုံးပြုနိုင်ပါသည်။', 'error');
+                    return;
+                }
+                checkUpdateBtn.disabled = true;
+                updateStatusText.textContent = 'နောက်ဆုံး version ကို စစ်ဆေးနေပါသည်...';
+                window.AndroidBridge.checkForUpdate();
+            });
+        }
+
+        if (installUpdateBtn) {
+            installUpdateBtn.addEventListener('click', () => {
+                installUpdateBtn.disabled = true;
+                updateStatusText.textContent = 'Update ကို စတင်ဒေါင်းလုဒ်နေပါသည်...';
+                window.AndroidBridge.downloadLatestUpdate();
+            });
+        }
+
+        window.onUpdateCheckResult = (success, result) => {
+            if (checkUpdateBtn) checkUpdateBtn.disabled = false;
+            if (!success) {
+                updateStatusText.textContent = `Update စစ်၍မရပါ: ${String(result || 'Unknown error')}`;
+                showToast('Update စစ်ဆေးမှု မအောင်မြင်ပါ။', 'error');
+                return;
+            }
+            if (result.updateAvailable) {
+                updateStatusText.textContent = `Version ${result.versionName} အသစ် ရရှိပါပြီ။`;
+                installUpdateBtn.classList.remove('hidden');
+                installUpdateBtn.disabled = false;
+            } else {
+                updateStatusText.textContent = `Version ${result.currentVersionName} သည် နောက်ဆုံး version ဖြစ်ပါသည်။`;
+                installUpdateBtn.classList.add('hidden');
+                showToast('App သည် နောက်ဆုံး version ဖြစ်ပါသည်။', 'success');
+            }
+        };
+
+        window.onUpdateDownloadStatus = (status, message) => {
+            updateStatusText.textContent = message;
+            if (status === 'error') {
+                installUpdateBtn.disabled = false;
+                showToast(message, 'error');
+            }
+        };
 
         window.checkAuthStatus = handleEntryFlow; // Callback for Android bridge
 

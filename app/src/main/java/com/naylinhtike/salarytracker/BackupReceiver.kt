@@ -21,13 +21,12 @@ class BackupReceiver : BroadcastReceiver() {
     companion object {
         const val CHANNEL_ID = "backup_channel"
         const val NOTIFICATION_ID = 1002
-        private const val BACKUP_FILE_NAME = "salary_backup_pending.json"
     }
 
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action != BackupScheduler.ACTION_BACKUP) return
 
-        val backupFile = File(context.filesDir, BACKUP_FILE_NAME)
+        val backupFile = AccountStorage.currentBackupFile(context)
         if (!backupFile.exists()) {
             createNotificationChannel(context)
             val openIntent = Intent(context, MainActivity::class.java).apply {
@@ -57,6 +56,7 @@ class BackupReceiver : BroadcastReceiver() {
                 val values = android.content.ContentValues().apply {
                     put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
                     put(MediaStore.MediaColumns.MIME_TYPE, "application/json")
+                    put(MediaStore.MediaColumns.RELATIVE_PATH, android.os.Environment.DIRECTORY_DOWNLOADS)
                 }
                 val uri = context.contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
                 uri?.let {

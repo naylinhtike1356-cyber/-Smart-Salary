@@ -1,0 +1,8 @@
+{
+  "versionCode": 2,
+  "versionName": "1.1.0",
+  "apkUrl": "https://webdist-puce.vercel.app/SmartSalaryTracker.apk",
+  "sha256": "35d260fcbe17275121130a4b4049739bc5ebe7341ad4c2c62dc374d7f0b15136",
+  "publishedAt": "2026-10-20T03:14:10Z",
+  "notes": "Account-isolated storage, verified in-app updates, and security hardening."
+}

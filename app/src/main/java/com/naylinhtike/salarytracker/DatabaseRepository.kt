@@ -2,7 +2,6 @@ package com.naylinhtike.salarytracker
 
 import android.content.Context
 import org.json.JSONObject
-import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -10,12 +9,11 @@ import java.util.Locale
 object DatabaseRepository {
 
     /**
-     * Checks if a record exists for today in the pending backup JSON file.
-     * The internal web application uses 'salary_backup_pending.json' to store its state.
+     * Checks if a record exists for today in the active account's backup JSON file.
      */
     fun hasRecordForToday(context: Context): Boolean {
         return try {
-            val file = File(context.filesDir, "salary_backup_pending.json")
+            val file = AccountStorage.currentBackupFile(context)
             if (!file.exists()) return false
 
             val jsonString = file.readText(Charsets.UTF_8)
@@ -36,7 +34,7 @@ object DatabaseRepository {
                 // the user might still need to add work record? Usually the app counts any record 
                 // (base, ot, paid_leave) as a logged day.
                 // The web app checks "has work" as: includes 'base' or includes 'ot'
-                if (date == todayStr && (type.contains("base") || type.contains("ot"))) {
+                if (date == todayStr && (type.contains("base") || type.contains("ot") || type.contains("night"))) {
                     return true
                 }
             }

@@ -7,16 +7,7 @@ import android.database.Cursor
 import android.database.MatrixCursor
 import android.net.Uri
 
-/**
- * ContentProvider for VoiceBrainLive to query SalaryTracker data and trigger actions via voice.
- *
- * Query URI: content://com.naylinhtike.salarytracker.voiceprovider/salary
- *   Returns: 1 row, column "data" = full JSON string
- *
- * Insert URI: content://com.naylinhtike.salarytracker.voiceprovider/actions
- *   ContentValues: "action" = "quick_add_today" | "copy_yesterday"
- *   Starts MainActivity to run the action (same as widget buttons).
- */
+/** Internal provider for app-owned salary data and quick actions. */
 class SalaryDataProvider : ContentProvider() {
 
     override fun onCreate(): Boolean = true
@@ -29,7 +20,8 @@ class SalaryDataProvider : ContentProvider() {
         sortOrder: String?
     ): Cursor? {
         if (uri.path != "/salary") return null
-        val file = context?.filesDir?.let { java.io.File(it, "salary_backup_pending.json") } ?: return null
+        val ctx = context ?: return null
+        val file = AccountStorage.currentBackupFile(ctx)
         val json = runCatching { file.readText(Charsets.UTF_8) }.getOrNull() ?: return null
         if (json.isBlank()) return null
         val cursor = MatrixCursor(arrayOf("data"))
