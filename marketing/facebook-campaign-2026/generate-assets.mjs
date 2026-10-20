@@ -4,20 +4,11 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const campaignDir = path.dirname(fileURLToPath(import.meta.url));
-const repoDir = path.resolve(campaignDir, '..', '..');
 const imageDir = path.join(campaignDir, 'assets', 'images');
 const frameDir = path.join(campaignDir, 'assets', 'video-frames');
 const videoDir = path.join(campaignDir, 'assets', 'videos');
-const iconPath = path.join(repoDir, 'app', 'src', 'main', 'res', 'mipmap-xxxhdpi', 'ic_launcher.webp');
 
 for (const dir of [imageDir, frameDir, videoDir]) fs.mkdirSync(dir, { recursive: true });
-
-const iconPngPath = path.join(campaignDir, 'assets', 'app-icon.png');
-const iconConvert = spawnSync('magick', [iconPath, iconPngPath], { encoding: 'utf8' });
-if (iconConvert.status !== 0) {
-  throw new Error(`App icon conversion failed\n${iconConvert.stdout}\n${iconConvert.stderr}`);
-}
-const iconData = `data:image/png;base64,${fs.readFileSync(iconPngPath).toString('base64')}`;
 const colors = {
   blue: '#1769E0', navy: '#0B1736', cyan: '#19C7C9', amber: '#FFB547',
   green: '#16A36A', coral: '#FF6B5D', ink: '#172033', muted: '#65738A',
@@ -28,7 +19,7 @@ const posts = [
   { id: '01-brand-launch', kicker: 'SMART SALARY TRACKER', title: ['အလုပ်ချိန်ကိုမှတ်', 'လစာကိုသိ'], sub: ['ကိုရီးယားရှိ မြန်မာအလုပ်သမားများအတွက်', 'နေ့စဉ်အလုပ်ချိန်နှင့် လစာမှတ်တမ်း App'], accent: colors.blue, scene: 'dashboard', badge: 'WEB + ANDROID' },
   { id: '02-no-more-guessing', kicker: 'မှတ်စုတွေ မပျောက်တော့ဘူး', title: ['မှန်းဆမနေပါနဲ့', 'မှတ်တမ်းနဲ့သိပါ'], sub: ['အလုပ်ဝင်/ဆင်းချိန်၊ OT နဲ့ ညဆိုင်းကို', 'တစ်နေရာတည်းမှာ စနစ်တကျသိမ်းပါ'], accent: colors.coral, scene: 'compare', badge: 'PROBLEM → SOLUTION' },
   { id: '03-setup-rates', kicker: 'အသုံးပြုနည်း ၁', title: ['ကိုယ့်လစာနှုန်းထား', 'အရင်သတ်မှတ်ပါ'], sub: ['အခြေခံလစာ • OT • ညဆိုင်း', 'ပိတ်ရက်နှုန်းထားကို စာချုပ်အတိုင်းထည့်ပါ'], accent: colors.amber, scene: 'settings', badge: 'STEP 01' },
-  { id: '04-daily-entry', kicker: 'အသုံးပြုနည်း ၂', title: ['နေ့စဉ် ၁ မိနစ်', 'အလုပ်ချိန်မှတ်ပါ'], sub: ['ရက်စွဲရွေး • အချိန်ထည့် • သိမ်း', 'လကုန်မှ ပြန်ရှာစရာမလိုတော့ပါ'], accent: colors.green, scene: 'entry', badge: 'STEP 02' },
+  { id: '04-daily-entry', kicker: 'အသုံးပြုနည်း ၂', title: ['Widget နဲ့ အမြန်', 'အလုပ်ချိန်မှတ်ပါ'], sub: ['ယနေ့မှတ်တမ်း • မနေ့ကလို', 'Home Screen မှ တစ်ချက်နှိပ်ရုံပါ'], accent: colors.green, scene: 'entry', badge: '1-MINUTE DAILY LOG' },
   { id: '05-calendar-overview', kicker: 'လစဉ်အခြေအနေ တစ်ချက်ကြည့်', title: ['အလုပ်ရက်နဲ့ OT ကို', 'Calendar မှာကြည့်ပါ'], sub: ['အလုပ်လုပ်ခဲ့တဲ့ရက်၊ နာရီနဲ့', 'ခန့်မှန်းလစာကို လစဉ်စုစည်းကြည့်နိုင်ပါတယ်'], accent: colors.cyan, scene: 'calendar', badge: 'MONTHLY VIEW' },
   { id: '06-overtime-types', kicker: 'အလုပ်ချိန်တိုင်းရဲ့ တန်ဖိုး', title: ['OT • ညဆိုင်း', 'ပိတ်ရက်အလုပ်'], sub: ['အလုပ်အမျိုးအစားအလိုက် ခွဲမှတ်ပြီး', 'ကိုယ့်နှုန်းထားနဲ့ ခန့်မှန်းတွက်ချက်ပါ'], accent: colors.lavender, scene: 'types', badge: 'SMART CALCULATION' },
   { id: '07-monthly-payslip', kicker: 'လကုန်မတိုင်ခင် ကြိုမြင်ပါ', title: ['လစဉ်လစာရှင်းတမ်း', 'တစ်နေရာတည်းမှာ'], sub: ['ဝင်ငွေ၊ OT၊ ဖြတ်တောက်မှုနဲ့', 'ခန့်မှန်းအသားတင်လစာကို စုစည်းကြည့်ပါ'], accent: colors.blue, scene: 'payslip', badge: 'PAYSLIP' },
@@ -116,7 +107,11 @@ function entryScene(x, y, w, h) {
   return `<text x="${x}" y="${y + 10}" font-family="Myanmar Text, sans-serif" font-size="14" font-weight="700" fill="${colors.muted}">ယနေ့အလုပ်မှတ်တမ်း</text>
   ${field(x, y + 32, w, 'ရက်စွဲ', '2026-10-16')}${field(x, y + 112, w, 'အလုပ်ဝင်ချိန်', '08:00')}${field(x, y + 192, w, 'အလုပ်ဆင်းချိန်', '18:30')}
   <rect x="${x}" y="${y + 272}" width="${w}" height="70" rx="14" fill="#fff" stroke="${colors.line}"/><text x="${x + 16}" y="${y + 299}" font-family="Myanmar Text, sans-serif" font-size="11" fill="${colors.muted}">အလုပ်အမျိုးအစား</text><rect x="${x + 16}" y="${y + 310}" width="92" height="24" rx="12" fill="#E9F2FF"/><text x="${x + 62}" y="${y + 327}" text-anchor="middle" font-family="Myanmar Text, sans-serif" font-size="10" font-weight="700" fill="${colors.blue}">ပုံမှန် + OT</text>
-  <rect x="${x}" y="${y + 364}" width="${w}" height="52" rx="14" fill="${colors.green}"/><text x="${x + w / 2}" y="${y + 398}" text-anchor="middle" font-family="Myanmar Text, sans-serif" font-size="14" font-weight="700" fill="#fff">မှတ်တမ်းသိမ်းမည်</text>`;
+  <rect x="${x}" y="${y + 354}" width="${w}" height="46" rx="14" fill="${colors.green}"/><text x="${x + w / 2}" y="${y + 385}" text-anchor="middle" font-family="Myanmar Text, sans-serif" font-size="13" font-weight="700" fill="#fff">မှတ်တမ်းသိမ်းမည်</text>
+  <rect x="${x}" y="${y + 416}" width="${w}" height="126" rx="18" fill="${colors.navy}"/>
+  <text x="${x + 16}" y="${y + 444}" font-family="Myanmar Text, sans-serif" font-size="12" font-weight="700" fill="#fff">HOME SCREEN WIDGET</text><text x="${x + w - 16}" y="${y + 444}" text-anchor="end" font-family="Arial, sans-serif" font-size="11" font-weight="700" fill="${colors.cyan}">22 DAYS • 196 HR</text>
+  <rect x="${x + 14}" y="${y + 462}" width="${(w - 38) / 2}" height="58" rx="13" fill="${colors.green}"/><text x="${x + 14 + (w - 38) / 4}" y="${y + 497}" text-anchor="middle" font-family="Myanmar Text, sans-serif" font-size="11" font-weight="700" fill="#fff">⚡ ယနေ့မှတ်တမ်း</text>
+  <rect x="${x + 24 + (w - 38) / 2}" y="${y + 462}" width="${(w - 38) / 2}" height="58" rx="13" fill="#253558" stroke="#526180"/><text x="${x + 24 + (w - 38) * 3 / 4}" y="${y + 497}" text-anchor="middle" font-family="Myanmar Text, sans-serif" font-size="11" font-weight="700" fill="#fff">📋 မနေ့ကလို</text>`;
 }
 
 function field(x, y, w, label, value) {
@@ -200,7 +195,7 @@ function benefitLines(scene) {
     dashboard: ['• နေ့စဉ်အလုပ်ချိန် စနစ်တကျ', '• လစဉ်လစာ ကြိုတင်ခန့်မှန်း', '• ကိုယ့်မှတ်တမ်း ကိုယ်ပိုင်ထားရှိ'],
     compare: ['• စာရွက်နဲ့ chat history မလို', '• ရက်စွဲအလိုက် ပြန်ရှာလွယ်', '• OT လွတ်သွားတာ လျော့နည်း'],
     settings: ['• စာချုပ်အလိုက် နှုန်းထားပြင်', '• တစ်ကြိမ်သတ်မှတ်ပြီး ဆက်သုံး', '• Payslip နဲ့ အမြဲတိုက်စစ်'],
-    entry: ['• ရက်စွဲရွေး', '• ဝင်/ဆင်းချိန်ထည့်', '• အလုပ်အမျိုးအစားရွေးပြီး သိမ်း'],
+    entry: ['• Widget မှ တစ်ချက်နှိပ်', '• ယနေ့မှတ်တမ်း အမြန်ထည့်', '• မနေ့ကလိုဆို Copy လုပ်'],
     calendar: ['• အလုပ်ရက် တစ်ချက်ကြည့်', '• OT နာရီ စုစည်းကြည့်', '• လစဉ်အခြေအနေ သိရှိ'],
     types: ['• ပုံမှန် / OT', '• ညဆိုင်း / ပိတ်ရက်', '• လစာရခွင့်ရက်'],
     payslip: ['• ဝင်ငွေ စုစည်းချက်', '• ဖြတ်တောက်မှု မှတ်တမ်း', '• ခန့်မှန်း အသားတင်လစာ'],
@@ -239,7 +234,11 @@ function renderSvg(svg, basePath) {
   return pngPath;
 }
 
-for (const post of posts) {
+const onlyPostId = process.argv.find(arg => arg.startsWith('--post='))?.slice('--post='.length);
+const selectedPosts = onlyPostId ? posts.filter(post => post.id === onlyPostId) : posts;
+if (selectedPosts.length === 0) throw new Error(`Unknown post id: ${onlyPostId}`);
+
+for (const post of selectedPosts) {
   renderSvg(squareSvg(post), path.join(imageDir, `post-${post.id}`));
 }
 
@@ -248,18 +247,20 @@ const reelSpecs = [
   { name: 'reel-02-how-to-use', ids: [2, 3, 4, 6, 7, 9], label: 'HOW TO USE' }
 ];
 
-for (const reel of reelSpecs) {
-  const reelFrameDir = path.join(frameDir, reel.name);
-  fs.mkdirSync(reelFrameDir, { recursive: true });
-  const rendered = reel.ids.map((postIndex, i) => renderSvg(verticalSvg(posts[postIndex], `${reel.label}  ${String(i + 1).padStart(2, '0')} / ${String(reel.ids.length).padStart(2, '0')}`), path.join(reelFrameDir, `frame-${String(i + 1).padStart(2, '0')}`)));
-  const concatPath = path.join(reelFrameDir, 'concat.txt');
-  const concat = rendered.flatMap(file => [`file '${file.replaceAll("'", "'\\''")}'`, 'duration 3.5']).concat(`file '${rendered.at(-1).replaceAll("'", "'\\''")}'`).join('\n');
-  fs.writeFileSync(concatPath, concat, 'utf8');
-  run('ffmpeg', ['-y', '-f', 'concat', '-safe', '0', '-i', concatPath, '-vf', 'fps=30,format=yuv420p', '-c:v', 'libx264', '-preset', 'medium', '-crf', '20', '-movflags', '+faststart', path.join(videoDir, `${reel.name}.mp4`)], `Build ${reel.name}`);
-  fs.copyFileSync(rendered[0], path.join(videoDir, `${reel.name}-cover.png`));
+if (!onlyPostId) {
+  for (const reel of reelSpecs) {
+    const reelFrameDir = path.join(frameDir, reel.name);
+    fs.mkdirSync(reelFrameDir, { recursive: true });
+    const rendered = reel.ids.map((postIndex, i) => renderSvg(verticalSvg(posts[postIndex], `${reel.label}  ${String(i + 1).padStart(2, '0')} / ${String(reel.ids.length).padStart(2, '0')}`), path.join(reelFrameDir, `frame-${String(i + 1).padStart(2, '0')}`)));
+    const concatPath = path.join(reelFrameDir, 'concat.txt');
+    const concat = rendered.flatMap(file => [`file '${file.replaceAll("'", "'\\''")}'`, 'duration 3.5']).concat(`file '${rendered.at(-1).replaceAll("'", "'\\''")}'`).join('\n');
+    fs.writeFileSync(concatPath, concat, 'utf8');
+    run('ffmpeg', ['-y', '-f', 'concat', '-safe', '0', '-i', concatPath, '-vf', 'fps=30,format=yuv420p', '-c:v', 'libx264', '-preset', 'medium', '-crf', '20', '-movflags', '+faststart', path.join(videoDir, `${reel.name}.mp4`)], `Build ${reel.name}`);
+    fs.copyFileSync(rendered[0], path.join(videoDir, `${reel.name}-cover.png`));
+  }
+
+  const postPngs = posts.map(post => path.join(imageDir, `post-${post.id}.png`));
+  run('magick', ['montage', ...postPngs, '-thumbnail', '320x320', '-tile', '5x2', '-geometry', '+16+16', '-background', colors.navy, path.join(campaignDir, 'assets', 'campaign-preview.jpg')], 'Build campaign preview');
 }
 
-const postPngs = posts.map(post => path.join(imageDir, `post-${post.id}.png`));
-run('magick', ['montage', ...postPngs, '-thumbnail', '320x320', '-tile', '5x2', '-geometry', '+16+16', '-background', colors.navy, path.join(campaignDir, 'assets', 'campaign-preview.jpg')], 'Build campaign preview');
-
-console.log(`Generated ${posts.length} post images and ${reelSpecs.length} videos in ${path.join(campaignDir, 'assets')}`);
+console.log(`Generated ${selectedPosts.length} post image(s)${onlyPostId ? '' : ` and ${reelSpecs.length} videos`} in ${path.join(campaignDir, 'assets')}`);
