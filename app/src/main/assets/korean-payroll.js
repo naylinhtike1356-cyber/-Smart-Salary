@@ -101,6 +101,37 @@ const KoreanPayroll = (() => {
         return { differences, complete, consistent, matches: complete && consistent && keys.every(key => differences[key] === 0) };
     }
 
+    const earningsLines = {
+        regularbasePay: 'baseMs', regularotPay: 'overtimeMs', nightallowancePay: 'nightMs',
+        holidaybasePay: 'holidayMs', holidayotPay: 'holidayOvertimeMs',
+        weeklyHolidayPay: null, otherallowancePay: null, bonusPay: null, grossAdjustment: null
+    };
+
+    function payslipLines(month, actual = {}) {
+        const line = (key, labelKey, estimate, unit = 'won') => {
+            const scale = unit === 'hours' ? 100 : 1;
+            const rounded = Math.round(estimate * scale);
+            const entered = Object.hasOwn(actual, key) ? actual[key] : null;
+            const value = Number.isFinite(entered) ? Math.round(entered * scale) : null;
+            return {
+                key, labelKey, unit, estimate: rounded / scale, actual: value === null ? null : value / scale,
+                difference: value === null ? null : (value - rounded) / scale
+            };
+        };
+        const earnings = Object.keys(earningsLines).map(key => line(
+            key, key, month.payslip[key] ?? month[key]
+        ));
+        const hours = Object.entries(earningsLines)
+            .filter(([, timeKey]) => timeKey)
+            .map(([labelKey, timeKey]) => line(timeKey, labelKey, month.payslip[timeKey] / 3600000, 'hours'));
+        hours.push(line('weeklyHolidaysCount', 'weeklyHolidayPay', month.weeklyHolidaysCount, 'days'));
+        const deductions = deductionKeys.map(key => line(
+            key, key === 'dormitoryFee' ? 'dormitoryMealPay' : key, month.calcDeductions[key]
+        ));
+        deductions.push(line('otherDeductions', 'otherDeductions', 0));
+        return { hours, earnings, deductions };
+    }
+
     function validSnapshot(snapshot) {
         if (snapshot?.version !== 1 || readWon(snapshot.grossPay) === null ||
             !Number.isSafeInteger(snapshot.grossAdjustment) || !snapshot.payslip || !snapshot.calcDeductions) return false;
@@ -115,7 +146,7 @@ const KoreanPayroll = (() => {
             deductions.totalDeductions === deductionKeys.reduce((sum, key) => sum + deductions[key], 0);
     }
 
-    return { calculate, compare, validSnapshot, insuranceFields, insuranceOverride };
+    return { calculate, compare, payslipLines, validSnapshot, insuranceFields, insuranceOverride };
 })();
 
 if (typeof module !== 'undefined') module.exports = KoreanPayroll;

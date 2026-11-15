@@ -521,9 +521,9 @@
                     fetch('release.json?t=' + Date.now())
                         .then(r => r.json())
                         .then(rel => {
-                            rel.currentVersionName = '1.2.3';
-                            rel.currentVersionCode = 6;
-                            rel.updateAvailable = (rel.versionCode > 6);
+                            rel.currentVersionName = '1.2.4';
+                            rel.currentVersionCode = 7;
+                            rel.updateAvailable = (rel.versionCode > 7);
                             if (window.onUpdateCheckResult) window.onUpdateCheckResult(true, rel);
                         })
                         .catch(e => {
@@ -539,8 +539,8 @@
                     document.body.removeChild(a);
                     if (window.onUpdateDownloadStatus) window.onUpdateDownloadStatus('downloading', 'Download started');
                 },
-                getAppVersionName: function() { return '1.2.3'; },
-                getAppVersionCode: function() { return 6; },
+                getAppVersionName: function() { return '1.2.4'; },
+                getAppVersionCode: function() { return 7; },
 
                 updateWidgetSummary: function(summaryText) {
                     console.log("Widget Summary updated:", summaryText);
@@ -1039,8 +1039,22 @@
                     </div>
                 </div>
 
-                <div id="record-table-body" class="space-y-3"></div>
-                <div id="record-table-footer" class="mt-4 rounded-xl bg-slate-50 p-3 text-sm"></div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm tabular-nums">
+                        <thead class="border-b border-slate-200 bg-slate-50 text-xs text-slate-700">
+                            <tr>
+                                <th id="th-month" scope="col" class="p-2 text-left">လ</th>
+                                <th id="th-income" scope="col" class="p-2 text-right">စုစုပေါင်းရငွေ</th>
+                                <th id="th-deductions" scope="col" class="p-2 text-right">ဖြတ်ငွေ</th>
+                                <th id="th-net" scope="col" class="p-2 text-right">အသားတင်</th>
+                            </tr>
+                        </thead>
+                        <tbody id="record-table-body"></tbody>
+                        <tfoot class="border-t border-slate-200 bg-slate-50">
+                            <tr id="record-table-footer" class="text-xs font-bold"></tr>
+                        </tfoot>
+                    </table>
+                </div>
             </div>
         </div>
 
@@ -1543,7 +1557,7 @@
                 <div class="mt-6 pt-5 border-t border-slate-200">
                     <div class="flex flex-col items-center justify-center text-center space-y-2">
                         <div class="flex items-center gap-2">
-                            <span id="app-version-badge" class="px-2.5 py-0.5 bg-blue-100 text-blue-700 text-[10px] font-bold rounded-full uppercase tracking-wider">Version 1.2.3</span>
+                            <span id="app-version-badge" class="px-2.5 py-0.5 bg-blue-100 text-blue-700 text-[10px] font-bold rounded-full uppercase tracking-wider">Version 1.2.4</span>
                             <span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded-full uppercase tracking-wider">Official</span>
                         </div>
                         <h4 class="text-xs font-bold text-slate-800">Smart Salary Tracker</h4>
@@ -1839,7 +1853,7 @@
     </div>
 </div>
 
-<div id="payslip-modal" class="hidden fixed inset-0 bg-black/50 flex justify-center items-center p-4 z-50 backdrop-blur-sm">
+<div id="payslip-modal" role="dialog" aria-modal="true" aria-labelledby="payslip-modal-header" class="hidden fixed inset-0 bg-black/50 flex justify-center items-center p-3 sm:p-4 z-50 backdrop-blur-sm">
     <div class="bg-white p-5 rounded-2xl shadow-xl max-w-2xl w-full border border-slate-200">
         <div class="flex justify-between items-center border-b border-slate-200 pb-3 mb-4">
             <h3 id="payslip-modal-header" class="text-lg font-semibold text-blue-600">လစဉ်လစာ明細</h3>
@@ -1847,7 +1861,8 @@
         </div>
         
         <div id="payslip-modal-content" class="max-h-[65vh] overflow-y-auto text-sm"></div>
-        <div class="mt-4 pt-3 border-t border-slate-200 flex flex-wrap gap-2 justify-end">
+        <div id="payslip-actions" class="mt-4 pt-3 border-t border-slate-200 flex flex-wrap gap-2 justify-end no-print">
+            <button id="payslip-compare-btn" type="button" class="w-full min-h-[44px] px-3 py-2 rounded-xl border border-blue-200 bg-blue-50 text-blue-800 text-sm font-semibold">စက်ရုံရှင်းတမ်းနှင့် တိုက်စစ်ရန်</button>
             <button id="payslip-print-btn" type="button" class="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold border border-slate-300 min-h-[40px] transition">
                 <i data-lucide="printer" class="w-4 h-4"></i><span>ပရင့်ထုတ်မည်</span>
             </button>
@@ -1857,6 +1872,13 @@
             <button id="payslip-share-btn" type="button" class="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold btn-glow min-h-[40px] transition">
                 <i data-lucide="share-2" class="w-4 h-4"></i><span>မျှဝေမည်</span>
             </button>
+        </div>
+        <div id="payroll-compare-actions" class="hidden mt-3 pt-3 border-t border-slate-200 no-print">
+            <div class="flex flex-wrap justify-between gap-2">
+                <button id="payroll-back-to-payslip" type="button" class="min-h-[44px] px-3 rounded-xl border border-slate-300 text-sm font-semibold"></button>
+                <button id="payroll-view-photo" type="button" class="hidden min-h-[44px] px-3 rounded-xl border border-slate-300 text-sm font-semibold"></button>
+                <button id="payroll-save-comparison" type="submit" form="payroll-comparison-form" class="min-h-[44px] px-4 rounded-xl bg-blue-700 text-white text-sm font-semibold"></button>
+            </div>
         </div>
 
     </div>
@@ -1972,14 +1994,11 @@
             <i data-lucide="x" class="w-6 h-6"></i>
         </button>
     </div>
-    <div class="flex-1 w-full max-w-lg flex items-center justify-center p-2 overflow-auto">
-        <img id="photo-lightbox-img" class="max-h-[80vh] max-w-full object-contain rounded-lg shadow-2xl" src="" alt="Payslip Photo">
+    <div id="photo-lightbox-scroll" class="flex-1 min-h-0 w-full max-w-lg p-2 overflow-auto">
+        <img id="photo-lightbox-img" class="block mx-auto max-h-[70vh] max-w-full object-contain rounded-lg shadow-2xl" src="" alt="Payslip Photo">
     </div>
     <div class="w-full max-w-lg p-3 flex justify-center gap-3">
-        <button type="button" id="photo-lightbox-delete-btn" class="min-h-[44px] px-4 py-2 bg-red-600/90 hover:bg-red-600 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition">
-            <i data-lucide="trash-2" class="w-4 h-4"></i>
-            <span>ဖျက်မည်</span>
-        </button>
+        <button type="button" id="photo-lightbox-zoom-btn" aria-pressed="false" class="min-h-[44px] px-4 py-2 border border-white/60 text-white rounded-xl text-sm font-bold">ချဲ့ကြည့်ရန်</button>
     </div>
 </div>
 
@@ -2061,7 +2080,7 @@
             </div>
             <div>
                 <h3 class="text-sm font-bold text-slate-900" id="update-modal-title">App ဗားရှင်းအသစ် ရရှိနေပါသည်</h3>
-                <span id="update-modal-version-badge" class="px-2 py-0.5 bg-blue-50 text-blue-700 text-[10px] font-bold rounded-full">v1.2.3</span>
+                <span id="update-modal-version-badge" class="px-2 py-0.5 bg-blue-50 text-blue-700 text-[10px] font-bold rounded-full">v1.2.4</span>
             </div>
         </div>
         <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1.5">
@@ -4117,12 +4136,18 @@
                                 }
                             } catch (err) {}
                         };
-                        req.onsuccess = () => done(req.result);
+                        req.onsuccess = () => {
+                            if (resolved) req.result.close();
+                            else done(req.result);
+                        };
                         req.onerror = () => done(null);
                         req.onblocked = () => done(null);
                     } catch (e) {
                         done(null);
                     }
+                }).then(db => {
+                    if (!db) this.dbPromise = null;
+                    return db;
                 });
                 return this.dbPromise;
             },
@@ -4180,35 +4205,37 @@
                     fileName: fileName || ('payslip_' + monthKey + '_slot' + slot + '.jpg'),
                     timestamp: Date.now()
                 };
-                this.memoryFallback.set(id, item);
                 const db = await this.init();
-                if (!db) return true;
+                if (!db) return false;
                 return new Promise((resolve) => {
                     try {
                         const tx = db.transaction('photos', 'readwrite');
-                        const store = tx.objectStore('photos');
-                        const req = store.put(item);
-                        req.onsuccess = () => resolve(true);
-                        req.onerror = () => resolve(true);
+                        tx.oncomplete = () => {
+                            this.memoryFallback.set(id, item);
+                            resolve(true);
+                        };
+                        tx.onabort = tx.onerror = () => resolve(false);
+                        tx.objectStore('photos').put(item);
                     } catch (e) {
-                        resolve(true);
+                        resolve(false);
                     }
                 });
             },
             async deletePhoto(monthKey, slot) {
                 const id = monthKey + '_slot' + slot;
-                this.memoryFallback.delete(id);
                 const db = await this.init();
-                if (!db) return true;
+                if (!db) return false;
                 return new Promise((resolve) => {
                     try {
                         const tx = db.transaction('photos', 'readwrite');
-                        const store = tx.objectStore('photos');
-                        const req = store.delete(id);
-                        req.onsuccess = () => resolve(true);
-                        req.onerror = () => resolve(true);
+                        tx.oncomplete = () => {
+                            this.memoryFallback.delete(id);
+                            resolve(true);
+                        };
+                        tx.onabort = tx.onerror = () => resolve(false);
+                        tx.objectStore('photos').delete(id);
                     } catch (e) {
-                        resolve(true);
+                        resolve(false);
                     }
                 });
             },
@@ -5101,7 +5128,13 @@
 
         const PAYROLL_LABELS = {
             my: {
-                estimate: 'ခန့်မှန်း', actual: 'လစာစာရွက်', difference: 'ကွာခြားချက်', details: 'အသေးစိတ်နှင့် ပြင်ဆင်ရန်',
+                estimate: 'ခန့်မှန်း', actual: 'စက်ရုံ', difference: 'ကွာဟချက်', item: 'အချက်',
+                compare: 'စက်ရုံရှင်းတမ်းနှင့် တိုက်စစ်ရန်', compareTitle: 'ရှင်းတမ်းတိုက်စစ်', photo: 'စက်ရုံစာရွက် တွဲရန်', viewPhoto: 'စာရွက်ကြည့်ရန်',
+                zoomPhoto: 'ချဲ့ကြည့်ရန်', fitPhoto: 'အပြည့်ပြန်ကြည့်ရန်',
+                photoHint: 'စာရွက်ပေါ်က ဂဏန်းဖြည့်ပါ။ ကွာဟချက် = စက်ရုံ − App',
+                hours: 'အလုပ်ချိန်နှင့် ရက်အရေအတွက်', hourUnit: 'နာရီ', days: 'ရက်', otherDeductions: 'အခြားဖြတ်ငွေ',
+                changedLines: count => count + ' ချက်ကွာ', checkedLines: (count, total) => 'တိုက်စစ်ထားသော အသေးစိတ် ' + count + ' / ' + total,
+                allMatch: 'စုစုပေါင်းနှင့် အသေးစိတ်အားလုံး ကိုက်ညီသည်',
                 missing: 'လစာစာရွက်မှ ရငွေ၊ ဖြတ်ငွေနှင့် အသားတင်ငွေ ထည့်ပါ။',
                 match: 'သုံးမျိုးလုံး ကိုက်ညီသည်', mismatch: 'ကွာခြားချက်ရှိသည်', inconsistent: 'စာရွက်ရှိ ရငွေ − ဖြတ်ငွေနှင့် အသားတင်ငွေ မညီပါ။',
                 adjustment: 'လစာတွက်ချက်မှု ပြင်ဆင်ငွေ (±₩)', adjustmentNote: 'ပြင်ဆင်ရသည့် အကြောင်းရင်း',
@@ -5114,11 +5147,18 @@
                 recalculated: 'ဖွင့်လိုက်လျှင် လက်ရှိမှတ်တမ်းနှင့် Settings အရ ပြန်တွက်ပါမည်။',
                 invalid: 'အကျုံးဝင်ကလေးဦးရေသည် ကိုယ်တိုင်မပါသည့် မိသားစုဦးရေထက် မကျော်ရပါ။',
                 saveError: 'မသိမ်းနိုင်ပါ။ ထပ်စမ်းကြည့်ပါ။',
+                saved: 'တိုက်စစ်ချက် သိမ်းပြီးပါပြီ။',
                 basisHint: 'အာမခံအခြေခံလစာ အလွတ်ထားလျှင် အခွန်တွက်ရမည့်လစာကို သုံးပါမည်။',
                 coverage: '2025–2026 ပြင်ပအတွက် ရရှိနိုင်သော နီးစပ်ရာ နှုန်းများဖြင့် ခန့်မှန်းထားသည်။'
             },
             ko: {
-                estimate: '예상', actual: '급여명세서', difference: '차이', details: '세부 내역 및 입력',
+                estimate: '예상', actual: '회사', difference: '차이', item: '항목',
+                compare: '회사 급여명세서와 비교', compareTitle: '급여명세서 비교', photo: '급여명세서 사진 첨부', viewPhoto: '사진 보기',
+                zoomPhoto: '확대', fitPhoto: '전체 보기',
+                photoHint: '명세서의 수치를 입력하세요. 차이는 회사 명세서에서 앱 계산값을 뺀 값입니다.',
+                hours: '근무 시간과 일수', hourUnit: '시간', days: '일', otherDeductions: '기타 공제',
+                changedLines: count => count + '개 차이', checkedLines: (count, total) => '세부 항목 비교 ' + count + ' / ' + total,
+                allMatch: '합계와 모든 세부 항목이 일치합니다.',
                 missing: '명세서의 총 지급액, 공제액, 실수령액을 입력하세요.',
                 match: '세 항목 일치', mismatch: '차이 있음', inconsistent: '명세서의 지급액에서 공제액을 뺀 금액이 실수령액과 다릅니다.',
                 adjustment: '급여 조정액 (±₩)', adjustmentNote: '조정 사유', nonTaxable: '비과세 및 해당 학자금 (₩)',
@@ -5128,11 +5168,18 @@
                 unlock: '고정 해제', locked: '예상 급여 고정됨', recalculated: '고정을 해제하면 현재 기록과 설정으로 다시 계산합니다.',
                 invalid: '공제대상 자녀 수는 본인을 제외한 가족 수를 넘을 수 없습니다.',
                 saveError: '저장하지 못했습니다. 다시 시도하세요.',
+                saved: '비교 내용이 저장되었습니다.',
                 basisHint: '보험 산정 기준을 비워 두면 과세 급여를 기준으로 추정합니다.',
                 coverage: '2025–2026년 외에는 가장 가까운 적용 가능 요율로 추정합니다.'
             },
             en: {
-                estimate: 'Estimate', actual: 'Payslip', difference: 'Difference', details: 'View details and edit',
+                estimate: 'Estimate', actual: 'Factory', difference: 'Difference', item: 'Item',
+                compare: 'Compare factory payslip', compareTitle: 'Payslip comparison', photo: 'Attach factory payslip', viewPhoto: 'View photo',
+                zoomPhoto: 'Zoom in', fitPhoto: 'Fit photo',
+                photoHint: 'Enter the numbers on the payslip. The difference is the factory value minus the app value.',
+                hours: 'Work hours and days', hourUnit: 'hours', days: 'days', otherDeductions: 'Other deductions',
+                changedLines: count => count + ' different', checkedLines: (count, total) => 'Details checked ' + count + ' / ' + total,
+                allMatch: 'Totals and all details match.',
                 missing: 'Enter the gross pay, deductions and net pay shown on your payslip.',
                 match: 'All three amounts match', mismatch: 'Amounts differ', inconsistent: 'Payslip gross minus deductions differs from the entered net pay.',
                 adjustment: 'Payroll adjustment (±₩)', adjustmentNote: 'Reason for adjustment',
@@ -5144,6 +5191,7 @@
                 recalculated: 'Unlocking recalculates the estimate using current records and settings.',
                 invalid: 'Eligible children cannot exceed the number of family members excluding you.',
                 saveError: 'Could not save. Try again.',
+                saved: 'Comparison saved.',
                 basisHint: 'Blank insurance wage bases use taxable pay as an estimate.',
                 coverage: 'Outside 2025–2026 the app estimates using the nearest available rates.'
             }
@@ -5160,55 +5208,134 @@
             </label>`;
         }
 
-        function renderPayrollCard(month, data, labels) {
-            const { grossPay, totalDeductions, netSalary, calcDeductions, actual, comparison, extra, locked } = data;
+        function comparisonNumber(value, unit) {
+            if (value === null) return '—';
+            return unit === 'hours' ? value.toLocaleString('en-US', { maximumFractionDigits: 2 }) : formatKrw(value);
+        }
+
+        function comparisonTable(rows, labels) {
+            return `<table class="w-full table-fixed text-xs tabular-nums">
+                <colgroup><col class="w-[28%]"><col class="w-[21%]"><col class="w-[30%]"><col class="w-[21%]"></colgroup>
+                <thead class="border-b text-slate-600"><tr>
+                    <th scope="col" class="p-1 text-left">${labels.item}</th>
+                    <th scope="col" class="p-1 text-right">App</th>
+                    <th scope="col" class="p-1 text-center">${labels.actual}</th>
+                    <th scope="col" class="p-1 text-right">${labels.difference}</th>
+                </tr></thead>
+                <tbody>${rows.map(row => {
+                    const step = row.unit === 'hours' ? 0.01 : 1;
+                    const min = ['net', 'grossAdjustment'].includes(row.key) ? -10000000000 : 0;
+                    const fieldName = row.total ? row.key : 'line_' + row.key;
+                    return `<tr class="border-b border-slate-100">
+                        <th scope="row" class="p-1 text-left font-medium break-words">${row.label}</th>
+                        <td class="p-1 text-right">${comparisonNumber(row.estimate, row.unit)}</td>
+                        <td class="p-1"><input aria-label="${labels.actual} · ${row.label}" type="number" inputmode="${step < 1 || min < 0 ? 'decimal' : 'numeric'}"
+                            name="${fieldName}" min="${min}" max="${row.unit === 'won' ? 10000000000 : 1000}" step="${step}"
+                            class="w-full min-h-[44px] rounded-md border border-slate-300 bg-white p-1 text-right"
+                            value="${Number.isFinite(row.actual) ? row.actual : ''}" placeholder="—"
+                            data-compare-estimate="${row.estimate}" data-unit="${row.unit}"></td>
+                        <td class="p-1 text-right font-semibold break-words" data-compare-gap>—</td>
+                    </tr>`;
+                }).join('')}</tbody>
+            </table>`;
+        }
+
+        function updateComparisonFeedback(form) {
+            const labels = payrollLabels();
+            const actual = {};
+            const estimate = {};
+            let detailDifferences = 0;
+            let comparedDetails = 0;
+            let totalDetails = 0;
+            form.querySelectorAll('input[data-compare-estimate]').forEach(input => {
+                const expected = Number(input.dataset.compareEstimate);
+                const entered = input.validity.valid && Number.isFinite(input.valueAsNumber) ? input.valueAsNumber : null;
+                const unit = input.dataset.unit;
+                const scale = unit === 'hours' ? 100 : 1;
+                const difference = entered === null ? null : (Math.round(entered * scale) - Math.round(expected * scale)) / scale;
+                const cell = input.closest('tr').querySelector('[data-compare-gap]');
+                cell.textContent = (difference > 0 ? '+' : '') + comparisonNumber(difference, unit);
+                cell.classList.toggle('text-red-700', difference !== null && difference !== 0);
+                input.closest('tr').classList.toggle('bg-red-50', difference !== null && difference !== 0);
+                if (['gross', 'deductions', 'net'].includes(input.name)) {
+                    actual[input.name] = entered;
+                    estimate[input.name] = expected;
+                } else {
+                    totalDetails++;
+                    if (difference !== null) comparedDetails++;
+                    if (difference) detailDifferences++;
+                }
+            });
+            for (const group of form.querySelectorAll('[data-comparison-group]:not([data-comparison-group="settings"])')) {
+                const count = group.querySelectorAll('tr.bg-red-50').length;
+                const badge = group.querySelector('[data-group-differences]');
+                badge.textContent = count ? labels.changedLines(count) : '';
+                badge.hidden = !count;
+            }
+            const totals = KoreanPayroll.compare(estimate, actual);
+            const totalsDiffer = Object.values(totals.differences).some(gap => gap !== null && gap !== 0);
+            const alert = form.querySelector('[data-comparison-status]');
+            alert.textContent = !totals.consistent ? labels.inconsistent :
+                totalsDiffer || detailDifferences ? labels.mismatch :
+                totals.matches ? (comparedDetails === totalDetails ? labels.allMatch : labels.match) : labels.missing;
+            alert.classList.toggle('text-red-700', !totals.consistent || totalsDiffer || detailDifferences > 0);
+            alert.classList.toggle('text-green-700', totals.matches && !detailDifferences);
+            form.querySelector('[data-checked-lines]').textContent = labels.checkedLines(comparedDetails, totalDetails);
+        }
+
+        function openPayrollComparison(month, expanded) {
+            if (!validMonthKey(month)) return;
+            currentPayslipMonth = month;
+            const data = calculateMonthSalaryData(month);
+            const { actual, extra, locked } = data;
             const payroll = extra.payroll || {};
-            const amount = value => Number.isFinite(value) ? '₩' + formatKrw(value) : '—';
-            const rows = [
-                ['gross', t('th_income'), grossPay],
-                ['deductions', t('th_deductions'), totalDeductions],
-                ['net', t('th_net'), netSalary]
-            ];
-            const amounts = rows.map(([key, label, estimated]) => {
-                const gap = comparison.differences[key];
-                return `<tr class="border-t border-slate-100 ${key === 'net' ? 'font-bold' : ''}">
-                    <th scope="row" class="py-2 pr-1 text-left font-medium">${label}</th>
-                    <td class="text-right">${amount(estimated)}</td>
-                    <td class="pl-1 text-right">${amount(actual[key])}</td>
-                    <td class="pl-1 text-right ${gap ? 'text-amber-800' : ''}">${gap > 0 ? '+' : ''}${gap === null ? '—' : formatKrw(gap)}</td>
-                </tr>`;
+            const labels = payrollLabels();
+            const lineGroups = KoreanPayroll.payslipLines(data, actual.lines || {});
+            const totals = [
+                ['gross', t('th_income'), data.grossPay], ['deductions', t('th_deductions'), data.totalDeductions],
+                ['net', t('th_net'), data.netSalary]
+            ].map(([key, label, estimate]) => ({ key, label, estimate, actual: actual[key], unit: 'won', total: true }));
+            const groups = Object.entries(lineGroups).map(([id, lines]) => {
+                const groupLabel = { hours: labels.hours, earnings: t('payslip_earnings_title'), deductions: t('payslip_deductions_title') }[id];
+                const rows = lines.map(row => {
+                    const term = payslipTermMap[row.labelKey];
+                    const label = row.labelKey === 'grossAdjustment' ? labels.adjustment
+                        : row.labelKey === 'otherDeductions' ? labels.otherDeductions
+                        : id === 'hours' ? (term.ko + ' · ' + (row.unit === 'days' ? labels.days : labels.hourUnit)) : term.ko;
+                    return { ...row, label };
+                });
+                const open = expanded ? expanded.includes(id) : lines.some(line => line.difference !== null && line.difference !== 0);
+                return `<details data-comparison-group="${id}" class="rounded-lg border border-slate-200" ${open ? 'open' : ''}>
+                    <summary class="p-3 cursor-pointer text-sm font-semibold text-slate-800">${groupLabel}
+                        <span data-group-differences hidden class="ml-1 text-xs text-red-700"></span>
+                    </summary>
+                    ${comparisonTable(rows, labels)}
+                </details>`;
             }).join('');
-            const status = !comparison.consistent ? labels.inconsistent
-                : comparison.matches ? labels.match : comparison.complete ? labels.mismatch : labels.missing;
-            const deductionRows = Object.entries(payslipTermMap)
-                .filter(([key]) => Object.hasOwn(calcDeductions, key) || key === 'dormitoryMealPay')
-                .map(([key, term]) => `<div class="flex justify-between gap-2">
-                    <dt>${term[getCurrentLang()] || term.en || term.ko}</dt><dd>${amount(calcDeductions[key === 'dormitoryMealPay' ? 'dormitoryFee' : key])}</dd>
-                </div>`).join('');
             const paymentDate = /^\d{4}-\d{2}-\d{2}$/.test(payroll.paymentDate) ? payroll.paymentDate : '';
-            return `<div class="flex justify-between items-center gap-2 mb-2">
-                    <h3 class="font-bold text-slate-900">${month}</h3>
-                    <div class="photo-badge-slot"></div>
-                </div>
-                <table class="w-full table-fixed text-[11px] sm:text-sm leading-snug tabular-nums">
-                    <thead class="text-slate-600"><tr><td></td>
-                        <th scope="col" class="text-right pb-2">${labels.estimate}</th>
-                        <th scope="col" class="text-right pb-2">${labels.actual}</th>
-                        <th scope="col" class="text-right pb-2">${labels.difference} ₩</th>
-                    </tr></thead>
-                    <tbody>${amounts}</tbody>
-                </table>
-                <p class="text-xs font-semibold ${comparison.matches ? 'text-green-700' : 'text-slate-600'}">${status}</p>
-                ${locked ? `<p class="mt-1 text-xs text-blue-700">${labels.locked}</p>` : ''}
-                <details class="mt-3 border-t border-slate-200">
-                    <summary class="py-3 cursor-pointer text-sm font-semibold text-blue-700">${labels.details}</summary>
-                    <dl class="space-y-1 text-xs bg-slate-50 rounded-lg p-3">${deductionRows}</dl>
-                    <form class="payroll-form space-y-3 mt-3" data-month="${month}">
-                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                            ${rows.map(([key, label]) => payrollMoneyInput(key, labels.actual + ' · ' + label, actual[key], '', key === 'net' ? -10000000000 : 0)).join('')}
-                        </div>
-                        <fieldset ${locked ? 'disabled' : ''} class="space-y-2">
-                            <legend class="text-sm font-semibold">${labels.rules}</legend>
+            elements.payslipModalHeader.textContent = month + ' · ' + labels.compareTitle;
+            getElement('payslip-actions').classList.add('hidden');
+            getElement('payroll-compare-actions').classList.remove('hidden');
+            getElement('payroll-back-to-payslip').textContent = t('payslip_btn');
+            getElement('payroll-save-comparison').textContent = labels.save;
+            const photoButton = getElement('payroll-view-photo');
+            photoButton.textContent = labels.viewPhoto;
+            photoButton.classList.add('hidden');
+            photoButton.onclick = null;
+            elements.payslipModalContent.innerHTML = `<div class="space-y-3">
+                <details id="payslip-photo-section" class="rounded-lg border border-slate-200 p-2">
+                    <summary class="cursor-pointer p-1 font-semibold">${labels.photo}</summary>
+                    <div id="payslip-photo-slots" data-month="${month}" class="grid grid-cols-2 gap-2 mt-2"></div>
+                </details>
+                <form id="payroll-comparison-form" class="payroll-form space-y-3" data-month="${month}">
+                    <p class="text-xs text-slate-600">${labels.photoHint}</p>
+                    ${comparisonTable(totals, labels)}
+                    <p data-comparison-status role="status" class="text-sm font-semibold text-slate-800"></p>
+                    <p data-checked-lines class="text-xs text-slate-600"></p>
+                    ${groups}
+                    <details data-comparison-group="settings" class="rounded-lg border border-slate-200 p-3" ${expanded?.includes('settings') ? 'open' : ''}>
+                        <summary class="cursor-pointer font-semibold">${labels.rules}</summary>
+                        <fieldset ${locked ? 'disabled' : ''} class="mt-3 space-y-2">
                             <p class="text-xs text-slate-600">${labels.basisHint}</p>
                             ${month < '2025-01' || month > '2026-12' ? `<p class="text-xs text-amber-800">${labels.coverage}</p>` : ''}
                             <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -5237,16 +5364,23 @@
                             ${payrollMoneyInput('parentsWon', t('th_parents_won'), extra.parentsWon)}
                             ${payrollMoneyInput('parentsKyat', t('th_parents_local'), extra.parentsKyat)}
                         </div>
-                        <div class="flex flex-wrap gap-2">
-                            <button type="submit" class="min-h-[44px] px-3 rounded-lg bg-blue-700 text-white text-sm font-semibold">${labels.save}</button>
-                            <button type="submit" name="snapshotAction" value="${locked ? 'unlock' : 'lock'}" class="min-h-[44px] px-3 rounded-lg border border-blue-300 text-blue-800 text-sm">${locked ? labels.unlock : labels.lock}</button>
-                            <button type="button" data-payslip-month="${month}" class="min-h-[44px] px-3 rounded-lg border text-sm">${t('payslip_btn')}</button>
-                        </div>
-                    </form>
-                </details>`;
+
+                        <button type="submit" name="snapshotAction" value="${locked ? 'unlock' : 'lock'}"
+                            class="mt-2 min-h-[44px] px-3 rounded-lg border border-blue-300 text-blue-800 text-sm">
+                            ${locked ? labels.unlock : labels.lock}
+                        </button>
+                    </details>
+                </form>
+            </div>`;
+            elements.payslipModalContent.scrollTop = 0;
+            const form = getElement('payroll-comparison-form');
+            form.elements.namedItem('adjustmentNote').value = payroll.adjustmentNote || '';
+            updateComparisonFeedback(form);
+            openPayslipModal();
+            renderPayslipPhotos(month);
         }
 
-        const renderRecordTable = (openMonth) => {
+        const renderRecordTable = () => {
             const months = new Set(state.timeData.map(entry => entry.date.slice(0, 7)));
             state.monthlyExtras.forEach(extra => months.add(extra?.month));
             const sortedMonths = [...months].filter(validMonthKey).sort().reverse();
@@ -5255,46 +5389,36 @@
                 new Option(year, year, false, year === state.viewingYear)));
 
             const visible = sortedMonths.filter(month => month.startsWith(String(state.viewingYear)));
-            elements.recordTableBody.replaceChildren();
             elements.recordTableFooter.hidden = visible.length === 0;
-            if (!visible.length) {
-                elements.recordTableBody.textContent = t('empty_records');
-                return;
-            }
             const labels = payrollLabels();
-            const totals = { gross: 0, deductions: 0, net: 0, parentsWon: 0, parentsKyat: 0 };
-            visible.forEach(month => {
+            const totals = { gross: 0, deductions: 0, net: 0 };
+            elements.recordTableBody.innerHTML = visible.map(month => {
                 const data = calculateMonthSalaryData(month);
                 totals.gross += data.grossPay;
                 totals.deductions += data.totalDeductions;
                 totals.net += data.netSalary;
-                totals.parentsWon += Number(data.extra.parentsWon) || 0;
-                totals.parentsKyat += Number(data.extra.parentsKyat) || 0;
-
-                const card = document.createElement('article');
-                card.className = 'rounded-xl border border-slate-200 bg-white p-3';
-                card.innerHTML = renderPayrollCard(month, data, labels);
-                card.querySelector('details').open = month === openMonth;
-                card.querySelector('input[name="adjustmentNote"]').value = data.extra.payroll?.adjustmentNote || '';
-                elements.recordTableBody.appendChild(card);
-
-                window.PayslipPhotoManager?.getPhotos(month).then(photos => {
-                    if (!photos?.length) return;
-                    const photo = document.createElement('button');
-                    photo.type = 'button';
-                    photo.className = 'text-xs text-blue-700 font-semibold min-h-[44px] px-2';
-                    photo.textContent = '📷 ' + photos.length;
-                    photo.addEventListener('click', () => openPhotoLightbox(photos[0].dataUrl));
-                    card.querySelector('.photo-badge-slot').appendChild(photo);
-                }).catch(error => console.warn('Could not load payslip photos:', error));
-            });
-            const rows = [
-                [t('th_income'), totals.gross], [t('th_deductions'), totals.deductions], [t('th_net'), totals.net],
-                [t('th_parents_won'), totals.parentsWon], [t('th_parents_local'), totals.parentsKyat]
-            ];
-            elements.recordTableFooter.innerHTML = `<h3 class="font-bold">${t('grand_total')} · ${labels.estimate} (${state.viewingYear})</h3>
-                <dl class="mt-2 space-y-1">${rows.map(([label, total]) => `<div class="flex justify-between gap-2"><dt>${label}</dt><dd>${formatKrw(total)}</dd></div>`).join('')}</dl>`;
+                const lines = KoreanPayroll.payslipLines(data, data.actual.lines || {});
+                const hasDifference = Object.values(data.comparison.differences).some(gap => gap !== null && gap !== 0) ||
+                    Object.values(lines).some(group => group.some(line => line.difference !== null && line.difference !== 0));
+                return `<tr class="border-t border-slate-100">
+                    <th scope="row" class="p-2 text-left">${month}</th>
+                    <td class="p-2 text-right">${formatKrw(data.grossPay)}</td>
+                    <td class="p-2 text-right">${formatKrw(data.totalDeductions)}</td>
+                    <td class="p-2 text-right font-bold">${formatKrw(data.netSalary)}</td>
+                </tr>
+                <tr><td colspan="4" class="px-2 pb-2">
+                    <div class="flex flex-wrap items-center gap-x-3">
+                        <button type="button" data-payslip-month="${month}" class="min-h-[44px] text-sm font-semibold text-blue-700">${t('payslip_btn')}</button>
+                        <button type="button" data-payroll-month="${month}" class="min-h-[44px] text-sm font-semibold text-blue-700">${labels.compare}</button>
+                        ${hasDifference ? `<span class="text-xs font-bold text-red-700">${labels.mismatch}</span>` : ''}
+                    </div>
+                </td></tr>`;
+            }).join('') || `<tr><td colspan="4" class="p-3 text-slate-600">${t('empty_records')}</td></tr>`;
+            elements.recordTableFooter.innerHTML = `<th scope="row" class="p-2 text-left">${t('grand_total')}</th>
+                <td class="p-2 text-right">${formatKrw(totals.gross)}</td><td class="p-2 text-right">${formatKrw(totals.deductions)}</td>
+                <td class="p-2 text-right">${formatKrw(totals.net)}</td>`;
         };
+
 
         function renderSettings() {
             const s = state.settings;
@@ -5416,7 +5540,7 @@
 
         async function renderPayslipPhotos(monthKey) {
             const container = getElement('payslip-photo-slots');
-            if (!container) return;
+            if (!container || container.dataset.month !== monthKey) return;
 
             let photos = [];
             let loadFailed = false;
@@ -5431,6 +5555,13 @@
                 console.warn('Payslip photo load timeout or error:', err);
                 loadFailed = true;
             }
+            if (!container.isConnected) return;
+            const photoButton = getElement('payroll-view-photo');
+            const displayablePhotos = photos.filter(photo =>
+                typeof photo?.dataUrl === 'string' && /^data:image\/(?:jpeg|png|webp|gif);base64,/i.test(photo.dataUrl));
+            const primaryPhoto = displayablePhotos.find(photo => photo.slot === 1) || displayablePhotos[0];
+            photoButton.classList.toggle('hidden', !primaryPhoto);
+            photoButton.onclick = primaryPhoto ? () => openPhotoLightbox(primaryPhoto.dataUrl) : null;
 
             if (loadFailed) {
                 container.innerHTML = `
@@ -5444,13 +5575,10 @@
                 return;
             }
 
-            const slot1Photo = photos.find(p => p.slot === 1);
-            const slot2Photo = photos.find(p => p.slot === 2);
-
             container.innerHTML = '';
 
             [1, 2].forEach(slotNum => {
-                const photo = (slotNum === 1) ? slot1Photo : slot2Photo;
+                const photo = displayablePhotos.find(photo => photo.slot === slotNum);
                 const slotLabel = (slotNum === 1) ? 'စာရွက်အရှေ့ (Front)' : 'စာရွက်အနောက် (Back)';
                 const card = document.createElement('div');
                 card.className = 'border border-slate-200 rounded-xl p-2.5 bg-slate-50 flex flex-col justify-between';
@@ -5462,7 +5590,9 @@
                                 <span class="text-[10px] font-bold text-slate-700">${slotLabel}</span>
                                 <span class="text-[9px] text-emerald-600 font-bold">✓ သိမ်းဆည်းပြီး</span>
                             </div>
-                            <img src="${photo.dataUrl}" class="w-full h-24 object-cover rounded-lg cursor-pointer border border-slate-200 hover:opacity-90 transition shadow-xs" alt="Payslip ${slotLabel}" onclick="openPhotoLightbox('${photo.dataUrl}')">
+                            <button type="button" data-open-photo class="block w-full">
+                                <img class="w-full h-24 object-contain rounded-lg border border-slate-200" alt="Payslip ${slotLabel}">
+                            </button>
                         </div>
                         <div class="flex items-center gap-1.5 mt-2 pt-1 border-t border-slate-200">
                             <button type="button" class="flex-1 py-1.5 px-2 bg-white border border-slate-300 hover:bg-slate-100 rounded-lg text-[10px] font-bold text-slate-700 text-center transition" onclick="triggerPhotoUpload('${monthKey}', ${slotNum})">
@@ -5474,15 +5604,17 @@
                         </div>
                         <input type="file" id="photo-upload-input-${slotNum}" accept="image/*" class="sr-only" onchange="handlePhotoFileSelected('${monthKey}', ${slotNum}, this)">
                     `;
+                    card.querySelector('img').src = photo.dataUrl;
+                    card.querySelector('[data-open-photo]').addEventListener('click', () => openPhotoLightbox(photo.dataUrl));
                 } else {
                     card.innerHTML = `
-                        <div class="flex flex-col items-center justify-center py-4 cursor-pointer hover:bg-slate-100 rounded-lg transition" onclick="triggerPhotoUpload('${monthKey}', ${slotNum})">
+                        <button type="button" class="w-full flex flex-col items-center justify-center py-4 cursor-pointer hover:bg-slate-100 rounded-lg transition" onclick="triggerPhotoUpload('${monthKey}', ${slotNum})">
                             <div class="w-9 h-9 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mb-1.5">
                                 <i data-lucide="plus" class="w-5 h-5 font-bold"></i>
                             </div>
                             <span class="text-xs font-bold text-slate-800">${slotLabel}</span>
                             <span class="text-[10px] text-blue-600 font-bold mt-0.5">+ ဓာတ်ပုံတွဲရန်</span>
-                        </div>
+                        </button>
                         <input type="file" id="photo-upload-input-${slotNum}" accept="image/*" class="sr-only" onchange="handlePhotoFileSelected('${monthKey}', ${slotNum}, this)">
                     `;
                 }
@@ -5505,7 +5637,12 @@
             try {
                 showToast('ဓာတ်ပုံကို ဖိသိပ်နေပါသည်...');
                 const compressed = await window.PayslipPhotoManager.compressImage(file);
-                await window.PayslipPhotoManager.savePhoto(monthKey, slot, compressed.dataUrl, file.name);
+                const saved = await window.PayslipPhotoManager.savePhoto(monthKey, slot, compressed.dataUrl, file.name);
+                if (!saved) {
+                    showToast(payrollLabels().saveError, 'error');
+                    input.value = '';
+                    return;
+                }
                 showToast('လစာစာရွက် ဓာတ်ပုံ သိမ်းဆည်းပြီးပါပြီ။');
                 renderPayslipPhotos(monthKey);
                 renderRecordTable();
@@ -5526,8 +5663,8 @@
         if (photoDeleteProceedBtn) {
             photoDeleteProceedBtn.addEventListener('click', async () => {
                 if (currentDeletingPhotoInfo && window.PayslipPhotoManager) {
-                    await window.PayslipPhotoManager.deletePhoto(currentDeletingPhotoInfo.monthKey, currentDeletingPhotoInfo.slot);
-                    showToast('ဓာတ်ပုံကို ဖျက်ပြီးပါပြီ။');
+                    const deleted = await window.PayslipPhotoManager.deletePhoto(currentDeletingPhotoInfo.monthKey, currentDeletingPhotoInfo.slot);
+                    showToast(deleted ? 'ဓာတ်ပုံကို ဖျက်ပြီးပါပြီ။' : payrollLabels().saveError, deleted ? 'success' : 'error');
                     renderPayslipPhotos(currentDeletingPhotoInfo.monthKey);
                     renderRecordTable();
                 }
@@ -5740,23 +5877,12 @@
                 <div class="mt-6 text-center bg-slate-100 p-4 rounded-xl border border-slate-200"><h4 class="text-xl font-bold text-slate-800">${t('payslip_net_title')}</h4><p class="text-3xl font-bold text-blue-600 mt-1">${formatKrw(netSalary)} ${wonUnit}</p></div>
                 ${payslipFooterNote}
                 
-                <!-- G7: Payslip Photo Attachment & Side-by-side Compare -->
-                <div id="payslip-photo-section" class="mt-5 pt-4 border-t border-slate-200">
-                    <div class="flex items-center justify-between mb-2">
-                        <div class="flex items-center gap-2">
-                            <span class="w-7 h-7 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center"><i data-lucide="camera" class="w-4 h-4"></i></span>
-                            <div>
-                                <h5 class="text-xs font-bold text-slate-800">စာရွက်လစာရှင်းတမ်း ဓာတ်ပုံ (Attached Photo)</h5>
-                                <p class="text-[10px] text-slate-500">🔒 ဤဖုန်းပေါ်တွင်သာ သိမ်းဆည်းပြီး မည်သည့်ဆာဗာသို့မျှ မပို့ပါ (On this phone only)</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div id="payslip-photo-slots" class="grid grid-cols-2 gap-2.5 mt-2">
-                        <div class="text-center py-4 text-xs text-slate-400 col-span-2">ဓာတ်ပုံများကို ရယူနေပါသည်...</div>
-                    </div>
-                </div>`;
+                `;
+            getElement('payslip-actions').classList.remove('hidden');
+            getElement('payroll-compare-actions').classList.add('hidden');
+            getElement('payslip-compare-btn').textContent = payrollLabels().compare;
+            elements.payslipModalContent.scrollTop = 0;
             openPayslipModal();
-            renderPayslipPhotos(monthKey);
         };
         window.calculateAndShowPayslip = calculateAndShowPayslip;
 
@@ -6294,16 +6420,30 @@
         }
 
         // Photo Lightbox modal helpers (G7)
+        function setPayslipPhotoZoom(zoomed) {
+            const img = getElement('photo-lightbox-img');
+            const button = getElement('photo-lightbox-zoom-btn');
+            img.style.width = zoomed ? '200%' : '';
+            img.style.maxWidth = zoomed ? 'none' : '';
+            img.style.maxHeight = zoomed ? 'none' : '';
+            button.textContent = zoomed ? payrollLabels().fitPhoto : payrollLabels().zoomPhoto;
+            button.setAttribute('aria-pressed', String(zoomed));
+            getElement('photo-lightbox-scroll').scrollTo(0, 0);
+        }
+
         function openPhotoLightbox(src) {
             const modal = getElement('payslip-photo-lightbox-modal');
             const img = getElement('photo-lightbox-img');
             if (modal && img) {
                 img.src = src;
                 modal.classList.remove('hidden');
+                setPayslipPhotoZoom(false);
                 if (window.lucide) lucide.createIcons();
             }
         }
         window.openPhotoLightbox = openPhotoLightbox;
+        getElement('photo-lightbox-zoom-btn').addEventListener('click', event =>
+            setPayslipPhotoZoom(event.currentTarget.getAttribute('aria-pressed') !== 'true'));
 
         const closePhotoLightboxBtn = getElement('close-photo-lightbox-btn');
         if (closePhotoLightboxBtn) {
@@ -6457,7 +6597,17 @@
         }
         document.addEventListener('click', () => getElement('day-context-menu').classList.add('hidden'));
 
-        elements.recordTableBody.addEventListener('submit', event => {
+        elements.payslipModalContent.addEventListener('input', event => {
+            if (event.target.matches('input[data-compare-estimate]')) updateComparisonFeedback(event.target.form);
+        });
+        elements.payslipModalContent.addEventListener('invalid', event => {
+            const section = event.target.closest('details');
+            if (section) section.open = true;
+        }, true);
+        getElement('payslip-compare-btn').addEventListener('click', () => openPayrollComparison(currentPayslipMonth));
+        getElement('payroll-back-to-payslip').addEventListener('click', () => calculateAndShowPayslip(currentPayslipMonth));
+
+        elements.payslipModalContent.addEventListener('submit', event => {
             const form = event.target;
             if (!form.classList.contains('payroll-form')) return;
             event.preventDefault();
@@ -6470,7 +6620,10 @@
             const previous = state.monthlyExtras;
             const existing = previous.find(extra => extra?.month === month) || {};
             const payroll = { ...existing.payroll, actual: {
-                gross: number('gross'), deductions: number('deductions'), net: number('net')
+                gross: number('gross'), deductions: number('deductions'), net: number('net'),
+                lines: Object.fromEntries(Array.from(form.querySelectorAll('[data-comparison-group] input[data-compare-estimate]'))
+                    .filter(field => field.value !== '')
+                    .map(field => [field.name.slice('line_'.length), field.valueAsNumber]))
             } };
             const locked = KoreanPayroll.validSnapshot(payroll.snapshot);
             if (!locked) {
@@ -6507,13 +6660,20 @@
                 showToast(labels.saveError, 'error');
                 return;
             }
-            renderRecordTable(month);
+            const openGroups = Array.from(form.querySelectorAll('[data-comparison-group][open]'), group => group.dataset.comparisonGroup);
+            const scroll = elements.payslipModalContent.scrollTop;
+            openPayrollComparison(month, openGroups);
+            elements.payslipModalContent.scrollTop = scroll;
+            renderRecordTable();
             syncWidgetData();
+            showToast(labels.saved, 'success');
         });
 
         elements.recordTableBody.addEventListener('click', event => {
             const button = event.target.closest('[data-payslip-month]');
             if (button) calculateAndShowPayslip(button.dataset.payslipMonth);
+            const comparisonButton = event.target.closest('[data-payroll-month]');
+            if (comparisonButton) openPayrollComparison(comparisonButton.dataset.payrollMonth);
         });
 
         // New: Year Select Listener
@@ -6810,8 +6970,8 @@
                         return r.json();
                     })
                     .then(release => {
-                        const curVerName = (window.AndroidBridge && typeof window.AndroidBridge.getAppVersionName === 'function') ? window.AndroidBridge.getAppVersionName() : '1.2.3';
-                        const curVerCode = (window.AndroidBridge && typeof window.AndroidBridge.getAppVersionCode === 'function') ? window.AndroidBridge.getAppVersionCode() : 6;
+                        const curVerName = (window.AndroidBridge && typeof window.AndroidBridge.getAppVersionName === 'function') ? window.AndroidBridge.getAppVersionName() : '1.2.4';
+                        const curVerCode = (window.AndroidBridge && typeof window.AndroidBridge.getAppVersionCode === 'function') ? window.AndroidBridge.getAppVersionCode() : 7;
                         release.updateAvailable = (release.versionCode > curVerCode);
                         release.currentVersionName = curVerName;
                         release.currentVersionCode = curVerCode;

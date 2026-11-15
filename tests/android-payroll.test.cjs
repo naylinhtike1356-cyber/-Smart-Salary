@@ -90,6 +90,34 @@ test('reconciliation requires all three payslip values, accepts zero and shows a
     assert.equal(payroll.compare({ gross: 0, deductions: 0, net: 0 }, { gross: 0, deductions: 0, net: 0 }).matches, true);
 });
 
+test('factory comparison reports differences by hours, earnings and deductions even when totals match', () => {
+    const month = {
+        payslip: { baseMs: 28800000, overtimeMs: 5400000, nightMs: 1200000, holidayMs: 0, holidayOvertimeMs: 0,
+            regularbasePay: 82560, regularotPay: 23220, nightallowancePay: 1720, holidaybasePay: 0,
+            holidayotPay: 0, otherallowancePay: 0, bonusPay: 5000 },
+        weeklyHolidaysCount: 4, weeklyHolidayPay: 330240, grossAdjustment: -3000,
+        calcDeductions: payroll.calculate(439740, '2026-10', {})
+    };
+    const entered = {
+        baseMs: 8, overtimeMs: 1.25, nightMs: 0.33, grossAdjustment: 0, regularotPay: 22000,
+        healthInsurance: 15000, incomeTax: 0, otherDeductions: 123
+    };
+    const groups = payroll.payslipLines(month, entered);
+    const byKey = Object.fromEntries(Object.values(groups).flat().map(row => [row.key, row]));
+    assert.equal(byKey.baseMs.difference, 0);
+    assert.equal(byKey.overtimeMs.difference, -0.25);
+    assert.equal(byKey.nightMs.difference, 0);
+    assert.equal(byKey.weeklyHolidaysCount.actual, null);
+    assert.equal(byKey.weeklyHolidaysCount.unit, 'days');
+    assert.equal(byKey.grossAdjustment.difference, 3000);
+    assert.equal(byKey.regularotPay.difference, -1220);
+    assert.equal(byKey.bonusPay.difference, null);
+    assert.equal(byKey.incomeTax.difference, 0);
+    assert.equal(byKey.otherDeductions.difference, 123);
+    assert.equal(byKey.healthInsurance.difference, -800);
+    assert.deepEqual(payroll.payslipLines(month, JSON.parse(JSON.stringify(entered))), groups);
+});
+
 test('Android automatic backup batches saves and discards a pending upload on account change', () => {
     const block = androidHtml.slice(androidHtml.indexOf('        let autoCloudBackupTimer;'), androidHtml.indexOf('        const loadState ='));
     const localWrites = [];
