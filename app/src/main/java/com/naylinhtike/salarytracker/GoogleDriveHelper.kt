@@ -45,10 +45,12 @@ class GoogleDriveHelper(private val context: Context) {
         runCatching {
             val service = getDriveService(account)
             
-            // Look for existing backup file in appDataFolder
+            // Look for existing backup file in appDataFolder ordered by newest first
             val result = service.files().list()
                 .setSpaces("appDataFolder")
-                .setQ("name = 'salary_tracker_backup.json'")
+                .setQ("name = 'salary_tracker_backup.json' and trashed = false")
+                .setOrderBy("modifiedTime desc")
+                .setFields("files(id, name)")
                 .execute()
             
             val files = result.files
@@ -59,7 +61,7 @@ class GoogleDriveHelper(private val context: Context) {
             
             val contentStream = ByteArrayContent.fromString("application/json", jsonData)
             
-            if (files.isEmpty()) {
+            if (files.isNullOrEmpty()) {
                 service.files().create(metadata, contentStream).execute()
             } else {
                 service.files().update(files[0].id, null, contentStream).execute()
@@ -74,17 +76,24 @@ class GoogleDriveHelper(private val context: Context) {
             
             val result = service.files().list()
                 .setSpaces("appDataFolder")
-                .setQ("name = 'salary_tracker_backup.json'")
+                .setQ("name = 'salary_tracker_backup.json' and trashed = false")
+                .setOrderBy("modifiedTime desc")
+                .setFields("files(id, name, size, modifiedTime)")
                 .execute()
             
             val files = result.files
-            if (files.isEmpty()) {
-                throw Exception("No backup found on Google Drive")
+            if (files.isNullOrEmpty()) {
+                throw Exception("Google Drive တွင် Backup ဖိုင် မတွေ့ရှိပါ")
             }
             
-            val fileId = files[0].id
+            val targetFile = files.firstOrNull { (it.getSize() ?: 1L) > 0L } ?: files[0]
+            val fileId = targetFile.id
             val inputStream = service.files().get(fileId).executeMediaAsInputStream()
-            inputStream.bufferedReader().use { it.readText() }
+            val text = inputStream.bufferedReader().use { it.readText() }
+            if (text.isBlank()) {
+                throw Exception("Google Drive ရှိ Backup ဖိုင် ဗလာဖြစ်နေပါသည်")
+            }
+            text
         }
     }
 }

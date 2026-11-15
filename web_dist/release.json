@@ -1,8 +1,8 @@
 {
-  "versionCode": 2,
-  "versionName": "1.1.0",
+  "versionCode": 4,
+  "versionName": "1.2.1",
   "apkUrl": "https://webdist-puce.vercel.app/SmartSalaryTracker.apk",
-  "sha256": "a5d7404e83f2c6fbac542e07b7afabe17bb3f11789239215cf5dfad58c359ae8",
-  "publishedAt": "2026-10-20T03:14:10Z",
-  "notes": "Account-isolated storage, verified in-app updates, and security hardening."
+  "sha256": "0dc8e1041f2fc7c23cb9a6cf3e48c531aedd7095f0cacdbef1271a6653d905ec",
+  "publishedAt": "2026-11-14T12:26:30Z",
+  "notes": "Four day types with automatic weekend and Korean public holiday selection in the calendar and multi-date entry. Existing records retain their saved types."
 }

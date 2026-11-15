@@ -36,8 +36,8 @@ class SalaryWidgetProvider : AppWidgetProvider() {
         var hoursText = "0.0 နာရီ"
         var salaryLabel = "ခန့်မှန်းလစာ"
         var salaryAmount = "---"
-        var btnTodayText = "⚡ ယနေ့မှတ်တမ်း"
-        var btnCopyText = "📋 မနေ့ကလို"
+        var btnTodayText = "ယနေ့မှတ်တမ်း"
+        var btnCopyText = "မနေ့ကလို"
 
         if (!jsonStr.isNullOrBlank()) {
             runCatching {
@@ -53,8 +53,8 @@ class SalaryWidgetProvider : AppWidgetProvider() {
                 salaryLabel = json.optString("salaryLabel", "ခန့်မှန်းလစာ")
                 val estSalary = json.optString("estSalary", "")
                 salaryAmount = if (estSalary.isNotBlank() && estSalary != "0" && estSalary != "---") "₩ $estSalary" else "---"
-                btnTodayText = json.optString("btnToday", "⚡ ယနေ့မှတ်တမ်း")
-                btnCopyText = json.optString("btnCopy", "📋 မနေ့ကလို")
+                btnTodayText = json.optString("btnToday", "ယနေ့မှတ်တမ်း")
+                btnCopyText = json.optString("btnCopy", "မနေ့ကလို")
             }
         } else {
             val oldSummary = prefs.getString(KEY_SUMMARY, "") ?: ""

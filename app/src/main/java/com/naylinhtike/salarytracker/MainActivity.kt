@@ -7,10 +7,8 @@ import com.google.firebase.ktx.Firebase
 
 import android.Manifest
 import android.app.DownloadManager
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
@@ -30,9 +28,12 @@ import androidx.core.content.ContextCompat
 import java.io.File
 import java.io.OutputStream
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import android.widget.Toast
 import com.google.android.gms.common.api.ApiException
@@ -50,6 +51,8 @@ class MainActivity : AppCompatActivity() {
     private var pageLoaded = false
     private var updateDownloadId: Long = -1L
     private var pendingInstallUri: Uri? = null
+    private var checkedVersionCode = 0
+    private var installerOffered = false
     private var latestApkUrl: String? = null
     private var latestApkSha256: String? = null
     private var latestVersionName: String? = null
@@ -58,7 +61,7 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         private const val RELEASE_METADATA_URL = "https://webdist-puce.vercel.app/release.json"
-        private const val RELEASE_HOST = "webdist-puce.vercel.app"
+        private const val RELEASE_APK_URL = "https://webdist-puce.vercel.app/SmartSalaryTracker.apk"
         private const val UPDATE_PREFS = "app_update_prefs"
         private const val UPDATE_APK_FILE = "SmartSalaryTracker-update.apk"
     }
@@ -68,6 +71,8 @@ class MainActivity : AppCompatActivity() {
         try {
             val account = task.getResult(ApiException::class.java)
             if (account != null) {
+                getSharedPreferences("smart_reminder_prefs", Context.MODE_PRIVATE)
+                    .edit().putString("entry_mode", "FULL").apply()
                 // Firebase: Set Hashed User ID for Privacy (Prevent PII in Analytics)
                 firebaseAnalytics.setUserId(hashString(account.id ?: "anonymous"))
                 
@@ -79,7 +84,16 @@ class MainActivity : AppCompatActivity() {
                 webView?.reload() // Reload the page to reflect signed-in state
             }
         } catch (e: ApiException) {
-            Toast.makeText(this, "Sign-in failed: ${e.message}", Toast.LENGTH_LONG).show()
+            logCustomEvent("google_sign_in_failed", Bundle().apply {
+                putLong("status_code", e.statusCode.toLong())
+            })
+            val message = when (e.statusCode) {
+                12501 -> "Google sign-in cancelled. Tap Sign in to choose an account again."
+                7 -> "Google sign-in needs an internet connection. Please try again."
+                10 -> "Google sign-in configuration error (10). Check this APK's package name and signing SHA-1 in Firebase / Google Cloud."
+                else -> "Google sign-in failed (${e.statusCode}). Please try again."
+            }
+            Toast.makeText(this, message, Toast.LENGTH_LONG).show()
         }
     }
 
@@ -91,18 +105,13 @@ class MainActivity : AppCompatActivity() {
         ActivityResultContracts.StartActivityForResult()
     ) {
         val uri = pendingInstallUri
+        pendingInstallUri = null
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O || packageManager.canRequestPackageInstalls()) {
             if (uri != null) launchPackageInstaller(uri)
+            else installerOffered = false
         } else {
-            Toast.makeText(this, "Install unknown apps permission is required to update.", Toast.LENGTH_LONG).show()
-        }
-    }
-
-    private val updateDownloadReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            if (intent?.action != DownloadManager.ACTION_DOWNLOAD_COMPLETE) return
-            val completedId = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1L)
-            if (completedId == updateDownloadId) verifyAndInstallUpdate(completedId)
+            notifyUpdateStatus("error", "Smart Salary ကို APK တပ်ဆင်ခွင့်ပေးပြီး ပြန်စမ်းပါ။")
+            installerOffered = true
         }
     }
 
@@ -131,6 +140,8 @@ class MainActivity : AppCompatActivity() {
                         requestMethod = "GET"
                         connectTimeout = 15_000
                         readTimeout = 15_000
+                        useCaches = false
+                        instanceFollowRedirects = false
                         setRequestProperty("Accept", "application/json")
                         setRequestProperty("Cache-Control", "no-cache")
                     }
@@ -142,8 +153,7 @@ class MainActivity : AppCompatActivity() {
                         val versionCode = release.getInt("versionCode")
                         val apkUrl = release.getString("apkUrl")
                         val sha256 = release.getString("sha256").lowercase()
-                        val parsedUrl = Uri.parse(apkUrl)
-                        require(parsedUrl.scheme == "https" && parsedUrl.host == RELEASE_HOST) {
+                        require(apkUrl == RELEASE_APK_URL) {
                             "Untrusted APK download URL"
                         }
                         require(sha256.matches(Regex("[0-9a-f]{64}"))) { "Invalid APK checksum" }
@@ -158,19 +168,18 @@ class MainActivity : AppCompatActivity() {
             }
 
             result.onSuccess { release ->
+                checkedVersionCode = release.getInt("versionCode")
                 latestApkUrl = release.getString("apkUrl")
                 latestApkSha256 = release.getString("sha256").lowercase()
                 latestVersionName = release.getString("versionName")
-                getSharedPreferences(UPDATE_PREFS, Context.MODE_PRIVATE).edit()
-                    .putString("apk_url", latestApkUrl)
-                    .putString("sha256", latestApkSha256)
-                    .putString("version_name", latestVersionName)
-                    .apply()
                 webView?.evaluateJavascript(
                     "if(window.onUpdateCheckResult)window.onUpdateCheckResult(true,$release);",
                     null
                 )
             }.onFailure { error ->
+                checkedVersionCode = 0
+                latestApkUrl = null
+                latestApkSha256 = null
                 val message = error.message ?: "Update check failed"
                 webView?.evaluateJavascript(
                     "if(window.onUpdateCheckResult)window.onUpdateCheckResult(false,${JSONObject.quote(message)});",
@@ -182,101 +191,117 @@ class MainActivity : AppCompatActivity() {
 
     private fun downloadLatestUpdate() {
         val apkUrl = latestApkUrl
-        if (apkUrl == null || latestApkSha256 == null) {
+        val sha256 = latestApkSha256
+        if (apkUrl == null || sha256 == null || checkedVersionCode <= BuildConfig.VERSION_CODE) {
             Toast.makeText(this, "Check for updates first.", Toast.LENGTH_SHORT).show()
             checkForAppUpdate()
             return
         }
 
-        val parsedUrl = Uri.parse(apkUrl)
-        if (parsedUrl.scheme != "https" || parsedUrl.host != RELEASE_HOST) {
-            Toast.makeText(this, "Blocked an untrusted update URL.", Toast.LENGTH_LONG).show()
+        val prefs = getSharedPreferences(UPDATE_PREFS, Context.MODE_PRIVATE)
+        val manager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+        if (updateDownloadId > 0 && prefs.getString("sha256", null) == sha256) {
+            installerOffered = false
+            notifyUpdateStatus("downloading", "Resuming update")
             return
         }
+        runCatching {
+            if (updateDownloadId > 0) manager.remove(updateDownloadId)
+            updateDownloadId = -1L
+            prefs.edit().remove("download_id").apply()
+            installerOffered = false
+            getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)?.let { File(it, UPDATE_APK_FILE).delete() }
+            val request = DownloadManager.Request(Uri.parse(apkUrl))
+                .setTitle("Smart Salary Tracker ${latestVersionName ?: "Update"}")
+                .setDescription("Downloading verified app update")
+                .setMimeType("application/vnd.android.package-archive")
+                .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
+                .addRequestHeader("Cache-Control", "no-cache")
+                .setDestinationInExternalFilesDir(this, Environment.DIRECTORY_DOWNLOADS, UPDATE_APK_FILE)
+                .setAllowedOverMetered(true)
+                .setAllowedOverRoaming(false)
 
-        getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)?.let { File(it, UPDATE_APK_FILE).delete() }
-        val request = DownloadManager.Request(parsedUrl)
-            .setTitle("Smart Salary Tracker ${latestVersionName ?: "Update"}")
-            .setDescription("Downloading verified app update")
-            .setMimeType("application/vnd.android.package-archive")
-            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-            .setDestinationInExternalFilesDir(this, Environment.DIRECTORY_DOWNLOADS, UPDATE_APK_FILE)
-            .setAllowedOverMetered(true)
-            .setAllowedOverRoaming(false)
-
-        updateDownloadId = (getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager).enqueue(request)
-        getSharedPreferences(UPDATE_PREFS, Context.MODE_PRIVATE).edit()
-            .putLong("download_id", updateDownloadId)
-            .apply()
-        notifyUpdateStatus("downloading", "Update download started")
-        Toast.makeText(this, "Update download started", Toast.LENGTH_SHORT).show()
+            updateDownloadId = manager.enqueue(request)
+            prefs.edit().putLong("download_id", updateDownloadId)
+                .putString("sha256", sha256)
+                .putInt("download_version", checkedVersionCode)
+                .apply()
+            notifyUpdateStatus("downloading", "Update download started")
+        }.onFailure { notifyUpdateStatus("error", it.message ?: "Update download failed") }
     }
 
-    private fun verifyAndInstallUpdate(downloadId: Long) {
-        lifecycleScope.launch {
-            val result = withContext(Dispatchers.IO) {
-                runCatching {
-                    val manager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-                    manager.query(DownloadManager.Query().setFilterById(downloadId)).use { cursor ->
-                        require(cursor.moveToFirst()) { "Downloaded update was not found" }
-                        val status = cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS))
-                        require(status == DownloadManager.STATUS_SUCCESSFUL) { "Update download failed" }
+    private suspend fun verifyAndInstallUpdate(downloadId: Long) {
+        val prefs = getSharedPreferences(UPDATE_PREFS, Context.MODE_PRIVATE)
+        val expectedHash = prefs.getString("sha256", null)
+        val expectedVersion = prefs.getInt("download_version", 0)
+        val result = withContext(Dispatchers.IO) {
+            runCatching {
+                val manager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+                manager.query(DownloadManager.Query().setFilterById(downloadId)).use { cursor ->
+                    require(cursor.moveToFirst()) { "Downloaded update was not found" }
+                    val status = cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS))
+                    if (status == DownloadManager.STATUS_FAILED) {
+                        val reason = cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_REASON))
+                        error("Update download failed ($reason)")
                     }
-                    val uri = manager.getUriForDownloadedFile(downloadId)
-                        ?: error("Downloaded APK cannot be opened")
-                    val apkFile = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
-                        ?.let { File(it, UPDATE_APK_FILE) }
-                        ?: error("Update storage is unavailable")
-                    require(apkFile.isFile) { "Downloaded APK file was not found" }
-                    val digest = MessageDigest.getInstance("SHA-256")
-                    apkFile.inputStream().use { input ->
-                        val buffer = ByteArray(8192)
-                        while (true) {
-                            val count = input.read(buffer)
-                            if (count <= 0) break
-                            digest.update(buffer, 0, count)
-                        }
-                    }
-                    val actual = digest.digest().joinToString("") { "%02x".format(it) }
-                    require(actual.equals(latestApkSha256, ignoreCase = true)) {
-                        "APK security verification failed"
-                    }
-                    validateDownloadedPackage(apkFile)
-                    uri
+                    if (status != DownloadManager.STATUS_SUCCESSFUL) return@runCatching null
                 }
+                val uri = manager.getUriForDownloadedFile(downloadId)
+                    ?: error("Downloaded APK cannot be opened")
+                val apkFile = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
+                    ?.let { File(it, UPDATE_APK_FILE) }
+                    ?: error("Update storage is unavailable")
+                require(apkFile.isFile) { "Downloaded APK file was not found" }
+                val digest = MessageDigest.getInstance("SHA-256")
+                apkFile.inputStream().use { input ->
+                    val buffer = ByteArray(8192)
+                    while (true) {
+                        val count = input.read(buffer)
+                        if (count <= 0) break
+                        digest.update(buffer, 0, count)
+                    }
+                }
+                val actual = digest.digest().joinToString("") { "%02x".format(it) }
+                require(actual.equals(expectedHash, ignoreCase = true)) {
+                    "APK security verification failed"
+                }
+                validateDownloadedPackage(apkFile, expectedVersion)
+                uri
             }
+        }
 
-            result.onSuccess { uri ->
-                getSharedPreferences(UPDATE_PREFS, Context.MODE_PRIVATE).edit()
-                    .remove("download_id")
-                    .apply()
-                notifyUpdateStatus("verified", "Update verified. Opening installer...")
+        if (downloadId != updateDownloadId) return
+        result.onSuccess { uri ->
+            if (uri != null) {
+                installerOffered = true
                 requestPackageInstall(uri)
-            }.onFailure { error ->
-                (getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager).remove(downloadId)
-                getSharedPreferences(UPDATE_PREFS, Context.MODE_PRIVATE).edit()
-                    .remove("download_id")
-                    .apply()
-                val message = error.message ?: "Update verification failed"
-                notifyUpdateStatus("error", message)
-                Toast.makeText(this@MainActivity, message, Toast.LENGTH_LONG).show()
             }
+        }.onFailure { error ->
+            runCatching { (getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager).remove(downloadId) }
+            updateDownloadId = -1L
+            prefs.edit().remove("download_id").apply()
+            val message = error.message ?: "Update verification failed"
+            notifyUpdateStatus("error", message)
+            Toast.makeText(this@MainActivity, message, Toast.LENGTH_LONG).show()
         }
     }
 
     private fun requestPackageInstall(uri: Uri) {
-        pendingInstallUri = uri
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !packageManager.canRequestPackageInstalls()) {
-            installPermissionLauncher.launch(
-                Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:$packageName"))
-            )
+            pendingInstallUri = uri
+            notifyUpdateStatus("permission", "Smart Salary ကို APK တပ်ဆင်ခွင့်ပေးပါ။")
+            runCatching {
+                installPermissionLauncher.launch(
+                    Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:$packageName"))
+                )
+            }.onFailure { notifyUpdateStatus("error", it.message ?: "Cannot open installation settings") }
             return
         }
         launchPackageInstaller(uri)
     }
 
     @Suppress("DEPRECATION")
-    private fun validateDownloadedPackage(apkFile: File) {
+    private fun validateDownloadedPackage(apkFile: File, expectedVersion: Int) {
         val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             PackageManager.GET_SIGNING_CERTIFICATES
         } else {
@@ -292,6 +317,7 @@ class MainActivity : AppCompatActivity() {
             archiveInfo.versionCode.toLong()
         }
         require(archiveVersion > BuildConfig.VERSION_CODE.toLong()) { "Update version is not newer" }
+        require(expectedVersion == 0 || archiveVersion == expectedVersion.toLong()) { "APK version differs from the release" }
 
         val installedInfo = packageManager.getPackageInfo(packageName, flags)
         val installedSignatures = signatureDigests(installedInfo)
@@ -316,10 +342,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun launchPackageInstaller(uri: Uri) {
-        startActivity(Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(uri, "application/vnd.android.package-archive")
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
-        })
+        runCatching {
+            startActivity(Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(uri, "application/vnd.android.package-archive")
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            })
+        }.onSuccess {
+            notifyUpdateStatus("verified", "Update verified. Android installer opened.")
+        }.onFailure { notifyUpdateStatus("error", it.message ?: "Cannot open Android installer") }
     }
 
     private fun notifyUpdateStatus(status: String, message: String) {
@@ -449,7 +479,7 @@ class MainActivity : AppCompatActivity() {
             logCustomEvent("cloud_backup_initiated")
             val account = GoogleSignIn.getLastSignedInAccount(this@MainActivity)
             if (account == null) {
-                signInLauncher.launch(googleDriveHelper.getGoogleSignInClient().signInIntent)
+                triggerSignIn()
                 return
             }
 
@@ -470,7 +500,7 @@ class MainActivity : AppCompatActivity() {
             logCustomEvent("cloud_restore_initiated")
             val account = GoogleSignIn.getLastSignedInAccount(this@MainActivity)
             if (account == null) {
-                signInLauncher.launch(googleDriveHelper.getGoogleSignInClient().signInIntent)
+                triggerSignIn()
                 return
             }
 
@@ -521,15 +551,32 @@ class MainActivity : AppCompatActivity() {
         }
 
         @JavascriptInterface
+        fun logUsageEvent(eventName: String) {
+            // Only fixed feature names; never accept salary, notes, or account data.
+            if (eventName in setOf("view_calendar", "view_records", "view_settings", "work_entry_saved")) {
+                logCustomEvent(eventName)
+            }
+        }
+
+        @JavascriptInterface
         fun triggerSignIn() {
-            signInLauncher.launch(googleDriveHelper.getGoogleSignInClient().signInIntent)
+            // WebView bridge calls run on a background thread; launch UI on main.
+            runOnUiThread {
+                if (!isFinishing && !isDestroyed) {
+                    logCustomEvent("google_sign_in_started")
+                    signInLauncher.launch(googleDriveHelper.getGoogleSignInClient().signInIntent)
+                }
+            }
         }
 
         @JavascriptInterface
         fun signOut() {
-            googleDriveHelper.getGoogleSignInClient().signOut().addOnCompleteListener {
-                Toast.makeText(this@MainActivity, "Signed out", Toast.LENGTH_SHORT).show()
-                webView?.reload()
+            runOnUiThread {
+                googleDriveHelper.getGoogleSignInClient().signOut().addOnCompleteListener {
+                    firebaseAnalytics.setUserId(null)
+                    Toast.makeText(this@MainActivity, "Signed out", Toast.LENGTH_SHORT).show()
+                    webView?.reload()
+                }
             }
         }
 
@@ -550,6 +597,8 @@ class MainActivity : AppCompatActivity() {
 
         @JavascriptInterface
         fun setEntryMode(mode: String) {
+            if (mode !in setOf("NONE", "BASIC", "FULL")) return
+            firebaseAnalytics.setUserProperty("entry_mode", mode.lowercase(java.util.Locale.ROOT))
             val prefs = getSharedPreferences("smart_reminder_prefs", Context.MODE_PRIVATE)
             prefs.edit().putString("entry_mode", mode).apply()
         }
@@ -557,15 +606,20 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        pendingInstallUri = savedInstanceState?.getString("pending_update_uri")?.let(Uri::parse)
+        installerOffered = pendingInstallUri != null
         
         firebaseAnalytics = Firebase.analytics
         googleDriveHelper = GoogleDriveHelper(this)
         AccountStorage.migrateLegacyBackupToBasic(this)
         getSharedPreferences(UPDATE_PREFS, Context.MODE_PRIVATE).let { prefs ->
             updateDownloadId = prefs.getLong("download_id", -1L)
-            latestApkUrl = prefs.getString("apk_url", null)
-            latestApkSha256 = prefs.getString("sha256", null)
-            latestVersionName = prefs.getString("version_name", null)
+            val downloadVersion = prefs.getInt("download_version", 0)
+            if (updateDownloadId > 0 && downloadVersion in 1..BuildConfig.VERSION_CODE) {
+                runCatching { (getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager).remove(updateDownloadId) }
+                updateDownloadId = -1L
+                prefs.edit().remove("download_id").apply()
+            }
         }
 
         // Alert Firebase about silent sign-in if already logged in
@@ -659,30 +713,28 @@ class MainActivity : AppCompatActivity() {
         ReminderScheduler.scheduleFromPrefs(this)
         BackupScheduler.scheduleFromPrefs(this)
 
-        ContextCompat.registerReceiver(
-            this,
-            updateDownloadReceiver,
-            IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE),
-            ContextCompat.RECEIVER_NOT_EXPORTED
-        )
-        if (updateDownloadId > 0) {
-            val manager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-            manager.query(DownloadManager.Query().setFilterById(updateDownloadId)).use { cursor ->
-                if (cursor.moveToFirst() &&
-                    cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS)) == DownloadManager.STATUS_SUCCESSFUL
-                ) {
-                    verifyAndInstallUpdate(updateDownloadId)
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                while (true) {
+                    if (updateDownloadId > 0 && !installerOffered) {
+                        verifyAndInstallUpdate(updateDownloadId)
+                    }
+                    delay(1000)
                 }
             }
         }
     }
 
     override fun onDestroy() {
-        runCatching { unregisterReceiver(updateDownloadReceiver) }
         webView?.removeJavascriptInterface("AndroidBridge")
         webView?.destroy()
         webView = null
         super.onDestroy()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        pendingInstallUri?.let { outState.putString("pending_update_uri", it.toString()) }
     }
 
     override fun onNewIntent(intent: Intent) {

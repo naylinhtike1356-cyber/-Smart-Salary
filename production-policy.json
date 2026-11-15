@@ -1,0 +1,12 @@
+{
+  "applicationId": "com.naylinhtike.salarytracker",
+  "applicationName": "Smart Salary Tracker",
+  "workspaceRoot": "C:/Users/nayli/AndroidStudioProjects/SalaryTracker",
+  "repository": "https://github.com/naylinhtike1356-cyber/-Smart-Salary.git",
+  "projectId": "prj_l4sGH6geD7HZuALGXmSXWTOA7JCR",
+  "teamId": "team_DL04XbV2Wiyt4AsfEPU1SPVb",
+  "projectName": "web_dist",
+  "publicUrl": "https://webdist-puce.vercel.app/",
+  "apkFile": "SmartSalaryTracker.apk",
+  "approvedApkSha256": "0dc8e1041f2fc7c23cb9a6cf3e48c531aedd7095f0cacdbef1271a6653d905ec"
+}
