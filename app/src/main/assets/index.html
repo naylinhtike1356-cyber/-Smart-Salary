@@ -7957,11 +7957,44 @@
                 try {
                     const content = event.target.result;
                     const normalizedState = robustParseAndNormalize(content);
-                    if (confirm('ဒေတာများကို အစားထိုး တင်သွင်းမှာ သေချာပါသလား?')) {
-                        localStorage.setItem(getStateStorageKey(), JSON.stringify(normalizedState));
-                        loadState(); 
-                        render(); 
-                        showToast('ဒေတာများ တင်သွင်းပြီးပါပြီ။', 'success');
+                    const entries = normalizedState.timeData.length;
+                    const extras = normalizedState.monthlyExtras.length;
+                    if (entries === 0) throw new Error('Backup တွင် အလုပ်ချိန်မှတ်တမ်း မပါရှိပါ။');
+                    const photoCount = Array.isArray(normalizedState._attached_photos) ?
+                        normalizedState._attached_photos.length : 0;
+                    const confirmed = confirm('ဒေတာမှတ်တမ်း ' + entries + ' ခု၊ လစာမှတ်တမ်း ' + extras +
+                        ' လ၊ ဓာတ်ပုံ ' + photoCount + ' ပုံ ပါရှိသည်။ လက်ရှိဒေတာကို ဘေးကင်းသော Restore Copy သိမ်းပြီးမှ အစားထိုးမည်။ ဆက်လုပ်မလား?');
+                    if (confirmed) {
+                        // Uses existing Android restore path with a pre-restore copy and rollback on error.
+                        const restored = applyRestoredBackup(content);
+                        // Photo import is additive only: never overwrite a photo already on-device.
+                        // A failed photo import does not erase the restored salary records.
+                        if (photoCount && window.PayslipPhotoManager) {
+                            (async () => {
+                                let added = 0, skipped = 0;
+                                for (const photo of normalizedState._attached_photos) {
+                                    const month = photo?.month;
+                                    const slot = Number(photo?.slot);
+                                    const image = photo?.dataUrl;
+                                    if (!validMonthKey(month) || ![1, 2].includes(slot) ||
+                                        typeof image !== 'string' || image.length > 18000000 ||
+                                        !/^data:image\/(jpeg|png|webp);base64,/i.test(image)) {
+                                        skipped++;
+                                        continue;
+                                    }
+                                    const existing = await window.PayslipPhotoManager.getPhotos(month);
+                                    if (existing.some(item => item.slot === slot)) {
+                                        skipped++;
+                                        continue;
+                                    }
+                                    if (await window.PayslipPhotoManager.savePhoto(month, slot, image, String(photo.fileName || 'payslip.jpg').slice(0, 128))) added++;
+                                    else skipped++;
+                                }
+                                showToast('Restore ' + restored + ' Entries; ဓာတ်ပုံ ' + added + ' ပုံ ထည့်၊ ' + skipped + ' ပုံကျော်', 'success');
+                            })().catch(() => showToast('လစာဒေတာ Restore ပြီးပါပြီ။ ဓာတ်ပုံအချို့ မရနိုင်ပါ။', 'error'));
+                        } else {
+                            showToast(restored + ' Entries ကို Restore ပြီးပါပြီ။', 'success');
+                        }
                     }
                 } catch (err) { 
                     console.error("Import Error:", err); 
