@@ -1,6 +1,11 @@
 package com.naylinhtike.salarytracker
 
 import android.graphics.Color
+import android.graphics.Bitmap
+import android.graphics.pdf.PdfRenderer
+import android.os.ParcelFileDescriptor
+import android.util.Base64
+import java.io.ByteArrayOutputStream
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.ktx.analytics
 import com.google.firebase.ktx.Firebase
@@ -385,6 +390,56 @@ class MainActivity : AppCompatActivity() {
     }
 
     inner class BackupBridge {
+        /** Convert page one of a PDF to a private JPEG; never sends PDF content to a server. */
+        @JavascriptInterface
+        fun renderPayslipPdf(dataUrl: String, month: String, slot: Int) {
+            if (!Regex("^\\d{4}-(0[1-9]|1[0-2])$").matches(month) || slot !in 1..2) return
+            lifecycleScope.launch(Dispatchers.IO) {
+                val response = runCatching {
+                    require(dataUrl.startsWith("data:application/pdf;base64,", ignoreCase = true))
+                    require(dataUrl.length <= 18000000) { "PDF exceeds the file size limit" }
+                    val bytes = Base64.decode(dataUrl.substringAfter(','), Base64.DEFAULT)
+                    require(bytes.size <= 12000000) { "PDF must be 12 MB or smaller" }
+                    val file = File.createTempFile("payslip-pdf-", ".pdf", cacheDir)
+                    try {
+                        file.writeBytes(bytes)
+                        ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY).use { fd ->
+                            PdfRenderer(fd).use { renderer ->
+                                require(renderer.pageCount >= 1) { "PDF has no pages" }
+                                renderer.openPage(0).use { page ->
+                                    val scale = minOf(1.0, 1600.0 / maxOf(page.width, page.height).toDouble())
+                                    val w = maxOf(1, (page.width * scale).toInt())
+                                    val h = maxOf(1, (page.height * scale).toInt())
+                                    val bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+                                    try {
+                                        bitmap.eraseColor(android.graphics.Color.WHITE)
+                                        page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
+                                        val image = ByteArrayOutputStream().use { stream ->
+                                            require(bitmap.compress(Bitmap.CompressFormat.JPEG, 83, stream))
+                                            stream.toByteArray()
+                                        }
+                                        JSONObject().put("ok", true)
+                                            .put("dataUrl", "data:image/jpeg;base64," + Base64.encodeToString(image, Base64.NO_WRAP))
+                                            .put("firstPageOnly", renderer.pageCount > 1)
+                                    } finally {
+                                        bitmap.recycle()
+                                    }
+                                }
+                            }
+                        }
+                    } finally {
+                        file.delete()
+                    }
+                }.getOrElse { JSONObject().put("ok", false).put("error", it.message ?: "PDF render failed") }
+                withContext(Dispatchers.Main) {
+                    if (!isFinishing && !isDestroyed) {
+                        webView?.evaluateJavascript(
+                            "window.onPayslipPdfRendered?.(${JSONObject.quote(month)},$slot,$response);", null)
+                    }
+                }
+            }
+        }
+
         /** Android-only local OCR; passes text boxes to the open payslip comparison. */
         @JavascriptInterface
         fun recognizePayslip(dataUrl: String, month: String) {
