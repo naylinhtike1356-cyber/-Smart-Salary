@@ -60,8 +60,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var firebaseAnalytics: FirebaseAnalytics
 
     companion object {
-        private const val RELEASE_METADATA_URL = "https://webdist-puce.vercel.app/release.json"
-        private const val RELEASE_APK_URL = "https://webdist-puce.vercel.app/SmartSalaryTracker.apk"
+        // Android releases are independent of the WebApp / Vercel deployment.
+        private const val RELEASE_METADATA_URL = "https://api.github.com/repos/naylinhtike1356-cyber/-Smart-Salary/releases/latest"
+        private const val RELEASE_APK_ORIGIN = "https://github.com/naylinhtike1356-cyber/-Smart-Salary/releases/download/"
         private const val UPDATE_PREFS = "app_update_prefs"
         private const val UPDATE_APK_FILE = "SmartSalaryTracker-update.apk"
     }
@@ -149,14 +150,32 @@ class MainActivity : AppCompatActivity() {
                         if (connection.responseCode != HttpURLConnection.HTTP_OK) {
                             error("Update server returned ${connection.responseCode}")
                         }
-                        val release = connection.inputStream.bufferedReader().use { JSONObject(it.readText()) }
-                        val versionCode = release.getInt("versionCode")
-                        val apkUrl = release.getString("apkUrl")
-                        val sha256 = release.getString("sha256").lowercase()
-                        require(apkUrl == RELEASE_APK_URL) {
-                            "Untrusted APK download URL"
-                        }
+                        val github = connection.inputStream.bufferedReader().use { JSONObject(it.readText()) }
+                        val tag = github.getString("tag_name")
+                        require(Regex("^v[0-9]+\\.[0-9]+\\.[0-9]+$").matches(tag)) { "Invalid mobile version tag" }
+                        val version = tag.removePrefix("v")
+                        val releaseBody = github.optString("body", "")
+                        val versionCode = Regex("Version code:\\s*([0-9]+)", RegexOption.IGNORE_CASE)
+                            .find(releaseBody)?.groupValues?.get(1)?.toIntOrNull()
+                            ?: error("Missing Android version code in GitHub release")
+                        val filename = "SmartSalaryTracker-$version.apk"
+                        val assets = github.getJSONArray("assets")
+                        val asset = (0 until assets.length()).asSequence().map { assets.getJSONObject(it) }
+                            .firstOrNull { it.optString("name") == filename }
+                            ?: error("Android APK not published for $tag")
+                        val apkUrl = asset.getString("browser_download_url")
+                        require(apkUrl == RELEASE_APK_ORIGIN + "$tag/$filename") { "Untrusted Android release URL" }
+                        val assetDigest = asset.optString("digest", "").removePrefix("sha256:").lowercase()
+                        val sha256 = if (assetDigest.matches(Regex("[0-9a-f]{64}"))) assetDigest else
+                            Regex("APK SHA-256:\\s*([0-9a-fA-F]{64})", RegexOption.IGNORE_CASE)
+                                .find(releaseBody)?.groupValues?.get(1)?.lowercase()
+                                ?: error("Missing verified APK SHA-256")
                         require(sha256.matches(Regex("[0-9a-f]{64}"))) { "Invalid APK checksum" }
+                        val release = JSONObject()
+                            .put("versionCode", versionCode)
+                            .put("versionName", version)
+                            .put("apkUrl", apkUrl)
+                            .put("sha256", sha256)
                         release.put("updateAvailable", versionCode > BuildConfig.VERSION_CODE)
                         release.put("currentVersionCode", BuildConfig.VERSION_CODE)
                         release.put("currentVersionName", BuildConfig.VERSION_NAME)
