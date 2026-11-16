@@ -57,6 +57,31 @@
             }
         }
 
+        /* Android salary comparison: purpose-driven motion, accessible and battery-light. */
+        #payroll-comparison-form tr { transition: background-color 180ms ease; }
+        #payroll-comparison-form [data-compare-gap] { transition: color 180ms ease, opacity 180ms ease; }
+        #payroll-comparison-form [data-comparison-group] > summary { min-height: 44px; }
+        #payroll-comparison-form [data-comparison-group] > summary:active { opacity: .82; }
+        #payroll-comparison-form input:focus-visible,
+        #record-view input:focus-visible,
+        #record-view button:focus-visible {
+            outline: 2px solid #2563eb;
+            outline-offset: 2px;
+        }
+        @media (min-width: 640px) {
+            #payroll-comparison-form [data-comparison-group] { animation: androidSalaryReveal 200ms ease both; }
+        }
+        @keyframes androidSalaryReveal {
+            from { opacity: .85; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            #payroll-comparison-form *, #record-view * {
+                animation: none !important;
+                transition: none !important;
+                scroll-behavior: auto !important;
+            }
+        }
     </style>
     <title>နေ့စဉ် အလုပ်ချိန်နှင့် လစာမှတ်တမ်း</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24' fill='none' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10' stroke='%233b82f6'%3E%3C/circle%3E%3Cpolyline points='12 6 12 12' stroke='%233b82f6'%3E%3C/polyline%3E%3Ccircle cx='12' cy='12' r='3' stroke='%2310b981'%3E%3C/circle%3E%3C/svg%3E">
