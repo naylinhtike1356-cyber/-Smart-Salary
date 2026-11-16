@@ -91,3 +91,40 @@ test('all embedded Android HTML JavaScript parses without syntax errors', () => 
         assert.doesNotThrow(() => new vm.Script(script));
     }
 });
+
+test('OCR uses factory month and payment day and never accepts a conflicting value', () => {
+    const result = OCR.parse({
+        imageWidth: 1200,
+        text: '귀속연월: 2026년 10월 지급일: 2026-11-15',
+        lines: [
+            {text: '기본급',left:40,top:10},{text:'1,816,320',left:310,top:10},
+            {text: '기본급',left:40,top:80},{text:'1,816,999',left:310,top:80},
+            {text: '지급총액',left:40,top:150},{text:'3,823,410',left:310,top:150},
+            {text: '공제총액',left:650,top:220},{text:'379,040',left:900,top:220},
+            {text: '실지급액',left:650,top:280},{text:'3,444,370',left:900,top:280}
+        ]
+    });
+    assert.equal(result.period, '2026-10');
+    assert.equal(result.paymentDate, '2026-11-15');
+    assert.equal(result.values.regularbasePay, undefined);
+    assert.equal(result.values.gross, 3823410);
+    assert.equal(result.values.deductions, 379040);
+    assert.equal(result.values.net, 3444370);
+    assert.ok(result.warnings.some(x => x.includes('Different values')));
+});
+test('all differences use App minus Factory and preserve incomplete states', () => {
+    const estimate = {gross: 3823410, deductions: 332825, net: 3490585};
+    const factory = {gross: 3823410, deductions: 379040, net: 3444370};
+    const comparison = Payroll.compare(estimate, factory);
+    assert.equal(comparison.differences.deductions, -46215);
+    assert.equal(comparison.differences.net, +46215);
+    assert.equal(comparison.matches, false);
+    assert.equal(Payroll.compare(estimate, {gross: null, deductions: 379040, net: null}).complete, false);
+    assert.match(html, /ကွာဟချက် = App − စက်ရုံ/);
+    assert.match(html, /data-comparison-overview/);
+    assert.match(html, /periodMismatch/);
+    assert.match(html, /payroll\.reviewedAt = reviewedComparison\.complete/);
+    assert.match(html, /payroll\.ocrEvidence =/);
+    assert.match(html, /applyRestoredBackup\(content\)/);
+    assert.match(html, /prefers-reduced-motion/);
+});
