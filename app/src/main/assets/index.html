@@ -2343,6 +2343,29 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="korean-withholding-table.js"></script>
 <script src="korean-payroll.js"></script>
+<style id="android-salary-comparison-motion">
+    /* Android asset-only: compact and accessible payroll comparison */
+    .salary-compare-table tbody tr { transition: background-color 180ms ease, outline-color 180ms ease; }
+    .salary-compare-table tbody tr:focus-within { outline: 2px solid #2563eb; outline-offset: -2px; }
+    .salary-compare-table td[data-compare-gap] { font-variant-numeric: tabular-nums; }
+    .salary-compare-table td input { min-width: 0; }
+    @media (max-width: 560px) {
+        .salary-compare-table { display: block; width: 100%; }
+        .salary-compare-table thead { display: none; }
+        .salary-compare-table tbody { display: block; }
+        .salary-compare-table tbody tr { display: grid; grid-template-columns: 1fr 1fr; gap: 0.25rem 0.75rem; padding: 0.5rem; border-bottom: 1px solid #cbd5e1; }
+        .salary-compare-table tbody th { grid-column: 1 / -1; font-size: 0.85rem; }
+        .salary-compare-table tbody td { width: 100%; text-align: left; overflow-wrap: anywhere; }
+        .salary-compare-table tbody td:first-of-type::before { content: "App"; display: block; color: #475569; font-size: 0.65rem; }
+        .salary-compare-table tbody td:nth-of-type(2)::before { content: "စက်ရုံ"; display: block; color: #475569; font-size: 0.65rem; }
+        .salary-compare-table tbody td:nth-of-type(3) { grid-column: 1 / -1; }
+        .salary-compare-table tbody td:nth-of-type(3)::before { content: "ကွာဟချက် · App − စက်ရုံ: "; color: #475569; font-weight: 400; }
+        .salary-compare-table tbody input { width: 100%; font-size: 1rem; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .salary-compare-table tbody tr { transition: none !important; }
+    }
+</style>
 <script src="korean-payslip-ocr.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -5136,7 +5159,7 @@
                 estimate: 'ခန့်မှန်း', actual: 'စက်ရုံ', difference: 'ကွာဟချက်', item: 'အချက်',
                 compare: 'စက်ရုံရှင်းတမ်းနှင့် တိုက်စစ်ရန်', compareTitle: 'ရှင်းတမ်းတိုက်စစ်', photo: 'စက်ရုံစာရွက် တွဲရန်', viewPhoto: 'စာရွက်ကြည့်ရန်',
                 zoomPhoto: 'ချဲ့ကြည့်ရန်', fitPhoto: 'အပြည့်ပြန်ကြည့်ရန်',
-                photoHint: 'စာရွက်ပေါ်က ဂဏန်းဖြည့်ပါ။ ကွာဟချက် = စက်ရုံ − App',
+                photoHint: 'စာရွက်ပေါ်က ဂဏန်းဖြည့်ပါ။ ကွာဟချက် = App − စက်ရုံ',
                 hours: 'အလုပ်ချိန်နှင့် ရက်အရေအတွက်', hourUnit: 'နာရီ', days: 'ရက်', otherDeductions: 'အခြားဖြတ်ငွေ',
                 changedLines: count => count + ' ချက်ကွာ', checkedLines: (count, total) => 'တိုက်စစ်ထားသော အသေးစိတ် ' + count + ' / ' + total,
                 allMatch: 'စုစုပေါင်းနှင့် အသေးစိတ်အားလုံး ကိုက်ညီသည်',
@@ -5160,7 +5183,7 @@
                 estimate: '예상', actual: '회사', difference: '차이', item: '항목',
                 compare: '회사 급여명세서와 비교', compareTitle: '급여명세서 비교', photo: '급여명세서 사진 첨부', viewPhoto: '사진 보기',
                 zoomPhoto: '확대', fitPhoto: '전체 보기',
-                photoHint: '명세서의 수치를 입력하세요. 차이는 회사 명세서에서 앱 계산값을 뺀 값입니다.',
+                photoHint: '명세서의 수치를 입력하세요. 차이 = 앱 계산액 − 회사 명세서 금액입니다.',
                 hours: '근무 시간과 일수', hourUnit: '시간', days: '일', otherDeductions: '기타 공제',
                 changedLines: count => count + '개 차이', checkedLines: (count, total) => '세부 항목 비교 ' + count + ' / ' + total,
                 allMatch: '합계와 모든 세부 항목이 일치합니다.',
@@ -5181,7 +5204,7 @@
                 estimate: 'Estimate', actual: 'Factory', difference: 'Difference', item: 'Item',
                 compare: 'Compare factory payslip', compareTitle: 'Payslip comparison', photo: 'Attach factory payslip', viewPhoto: 'View photo',
                 zoomPhoto: 'Zoom in', fitPhoto: 'Fit photo',
-                photoHint: 'Enter the numbers on the payslip. The difference is the factory value minus the app value.',
+                photoHint: 'Enter the numbers on the payslip. The difference is the app value minus the factory value.',
                 hours: 'Work hours and days', hourUnit: 'hours', days: 'days', otherDeductions: 'Other deductions',
                 changedLines: count => count + ' different', checkedLines: (count, total) => 'Details checked ' + count + ' / ' + total,
                 allMatch: 'Totals and all details match.',
@@ -5219,7 +5242,7 @@
         }
 
         function comparisonTable(rows, labels) {
-            return `<table class="w-full table-fixed text-xs tabular-nums">
+            return `<table class="salary-compare-table w-full table-fixed text-xs tabular-nums">
                 <colgroup><col class="w-[28%]"><col class="w-[21%]"><col class="w-[30%]"><col class="w-[21%]"></colgroup>
                 <thead class="border-b text-slate-600"><tr>
                     <th scope="col" class="p-1 text-left">${labels.item}</th>
@@ -5257,7 +5280,7 @@
                 const entered = input.validity.valid && Number.isFinite(input.valueAsNumber) ? input.valueAsNumber : null;
                 const unit = input.dataset.unit;
                 const scale = unit === 'hours' ? 100 : 1;
-                const difference = entered === null ? null : (Math.round(entered * scale) - Math.round(expected * scale)) / scale;
+                const difference = entered === null ? null : (Math.round(expected * scale) - Math.round(entered * scale)) / scale;
                 const cell = input.closest('tr').querySelector('[data-compare-gap]');
                 cell.textContent = (difference > 0 ? '+' : '') + comparisonNumber(difference, unit);
                 cell.classList.toggle('text-red-700', difference !== null && difference !== 0);
@@ -5278,13 +5301,14 @@
                 badge.hidden = !count;
             }
             const totals = KoreanPayroll.compare(estimate, actual);
+            const reviewed = form.dataset.reviewed === 'true' && form.dataset.dirty !== 'true';
             const totalsDiffer = Object.values(totals.differences).some(gap => gap !== null && gap !== 0);
             const alert = form.querySelector('[data-comparison-status]');
             alert.textContent = !totals.consistent ? labels.inconsistent :
                 totalsDiffer || detailDifferences ? labels.mismatch :
-                totals.matches ? (comparedDetails === totalDetails ? labels.allMatch : labels.match) : labels.missing;
+                totals.matches ? (reviewed ? (comparedDetails === totalDetails ? labels.allMatch : labels.match) : '✓ ဂဏန်းတူသည် — မအတည်ပြုရသေး၊ စစ်ပြီး သိမ်းရန်') : labels.missing;
             alert.classList.toggle('text-red-700', !totals.consistent || totalsDiffer || detailDifferences > 0);
-            alert.classList.toggle('text-green-700', totals.matches && !detailDifferences);
+            alert.classList.toggle('text-green-700', reviewed && totals.matches && !detailDifferences);
             form.querySelector('[data-checked-lines]').textContent = labels.checkedLines(comparedDetails, totalDetails);
         }
 
@@ -5394,6 +5418,8 @@
             </div>`;
             elements.payslipModalContent.scrollTop = 0;
             const form = getElement('payroll-comparison-form');
+            form.dataset.reviewed = payroll.reviewedAt ? 'true' : 'false';
+            form.dataset.dirty = 'false';
             form.elements.namedItem('adjustmentNote').value = payroll.adjustmentNote || '';
             updateComparisonFeedback(form);
             openPayslipModal();
@@ -5414,6 +5440,7 @@
                 const actual = data.actual;
                 const comparison = data.comparison;
                 if (!comparison.complete) return '<span class="text-slate-500 text-xs">စက်ရုံဒေတာ မပြည့်သေး</span>';
+                if (!data.extra.payroll?.reviewedAt) return '<span class="text-amber-700 text-xs">စာရင်းကို မအတည်ပြုရသေး</span>';
                 if (comparison.matches) return '<span class="text-emerald-700 text-xs font-bold">✓ သုံးမျိုးလုံး ကိုက်ညီ</span>';
                 return '<span class="text-red-700 text-xs font-bold">⚠ ရငွေ / ဖြတ်ငွေ / ကျန်ငွေ ကွာနေသည်</span>';
             };
@@ -5428,7 +5455,7 @@
                 const fmt = value => value === null ? '—' : formatKrw(value);
                 const delta = (value, estimate) => value === null ? '' :
                     '<span class="block text-xs ' + (value === estimate ? 'text-emerald-700' : 'text-red-700') +
-                    '">ကွာ: ' + (value > estimate ? '+' : '') + formatKrw(value - estimate) + '</span>';
+                    '">ကွာ (App−စက်ရုံ): ' + (estimate > value ? '+' : '') + formatKrw(estimate - value) + '</span>';
                 totals.gross += data.grossPay;
                 totals.deductions += data.totalDeductions;
                 totals.net += data.netSalary;
@@ -5725,6 +5752,9 @@
             }
             try {
                 const parsed = KoreanPayslipOCR.parse(envelope.result);
+                form.dataset.ocrPending = 'true';
+                form.dataset.dirty = 'true';
+                window.pendingPayslipOcr = { month, values: parsed.values, warnings: parsed.warnings, recognized: parsed.recognized };
                 let populated = 0;
                 const skipped = [];
                 for (const [key, value] of Object.entries(parsed.values)) {
@@ -6694,7 +6724,10 @@
         document.addEventListener('click', () => getElement('day-context-menu').classList.add('hidden'));
 
         elements.payslipModalContent.addEventListener('input', event => {
-            if (event.target.matches('input[data-compare-estimate]')) updateComparisonFeedback(event.target.form);
+            if (event.target.matches('input[data-compare-estimate]')) {
+                event.target.form.dataset.dirty = 'true';
+                updateComparisonFeedback(event.target.form);
+            }
         });
         elements.payslipModalContent.addEventListener('invalid', event => {
             const section = event.target.closest('details');
@@ -6721,6 +6754,22 @@
                     .filter(field => field.value !== '')
                     .map(field => [field.name.slice('line_'.length), field.valueAsNumber]))
             } };
+            const reviewedComparison = KoreanPayroll.compare(
+                { gross: calculateMonthSalaryData(month).grossPay,
+                  deductions: calculateMonthSalaryData(month).totalDeductions,
+                  net: calculateMonthSalaryData(month).netSalary },
+                payroll.actual);
+            // Only a deliberate Save verifies reviewed inputs. Unread OCR text is
+            // intentionally not stored; candidate numeric values remain separate.
+            payroll.reviewedAt = reviewedComparison.complete && reviewedComparison.consistent ? new Date().toISOString() : null;
+            if (window.pendingPayslipOcr?.month === month) {
+                payroll.ocrEvidence = {
+                    values: { ...window.pendingPayslipOcr.values },
+                    warnings: [...window.pendingPayslipOcr.warnings],
+                    recognized: window.pendingPayslipOcr.recognized,
+                    reviewedAt: payroll.reviewedAt
+                };
+            }
             const locked = KoreanPayroll.validSnapshot(payroll.snapshot);
             if (!locked) {
                 const familySize = number('familySize') ?? Math.max(1, (Math.round(state.settings.dependents) || 0) + 1);
@@ -6762,6 +6811,7 @@
             elements.payslipModalContent.scrollTop = scroll;
             renderRecordTable();
             syncWidgetData();
+            if (window.pendingPayslipOcr?.month === month) delete window.pendingPayslipOcr;
             showToast(labels.saved, 'success');
         });
 
@@ -6781,7 +6831,7 @@
             const existing = prior.find(item => item.month === month) || { month };
             const previousActual = getPayrollActual(existing);
             const actual = { ...previousActual, [field]: raw, net: null };
-            const payroll = { ...(existing.payroll || {}), actual };
+            const payroll = { ...(existing.payroll || {}), actual, reviewedAt: null };
             state.monthlyExtras = [...prior.filter(item => item.month !== month), { ...existing, month, payroll }];
             if (saveState() === false) { state.monthlyExtras = prior; return; }
             renderRecordTable();
