@@ -5302,7 +5302,8 @@
             }
             const totals = KoreanPayroll.compare(estimate, actual);
             const periodMismatch = form.dataset.periodMismatch === 'true';
-            const reviewed = form.dataset.reviewed === 'true' && form.dataset.dirty !== 'true';
+            const reviewed = form.dataset.reviewed === 'true' && form.dataset.dirty !== 'true' && reviewChecked;
+            const reviewChecked = form.elements.namedItem('confirmFactoryStatement')?.checked === true;
             const totalsDiffer = Object.values(totals.differences).some(gap => gap !== null && gap !== 0);
             const alert = form.querySelector('[data-comparison-status]');
             alert.textContent = periodMismatch ? 'NOT COMPARABLE · လစာစာရွက်လနှင့် ရွေးထားသောလ မတူပါ။' :
@@ -5383,6 +5384,7 @@
                     <p class="text-xs text-slate-600">${labels.photoHint}</p>
                     ${comparisonTable(totals, labels)}
                     <p data-comparison-status role="status" class="text-sm font-semibold text-slate-800"></p>
+                    <label class="flex items-start gap-2 p-2 rounded-lg bg-amber-50 border border-amber-200 text-sm"><input type="checkbox" name="confirmFactoryStatement" class="mt-1 min-w-[20px] min-h-[20px]" ${payroll.reviewedAt ? 'checked' : ''}><span>ဓာတ်ပုံနှင့် OCR ဂဏန်းအားလုံးကို ကိုယ်တိုင်စစ်ပြီးမှ အတည်ပြုမည်။ OCR ဖတ်ရုံဖြင့် အတည်ပြုမဟုတ်ပါ။</span></label>
                     <p data-checked-lines class="text-xs text-slate-600"></p>
                     <p data-comparison-overview aria-live="polite" class="text-xs font-semibold text-slate-700"></p>
                     ${groups}
@@ -6743,6 +6745,15 @@
         elements.payslipModalContent.addEventListener('input', event => {
             if (event.target.matches('input[data-compare-estimate]')) {
                 event.target.form.dataset.dirty = 'true';
+                const confirmation = event.target.form.elements.namedItem('confirmFactoryStatement');
+                if (confirmation) confirmation.checked = false;
+                updateComparisonFeedback(event.target.form);
+            }
+        });
+        elements.payslipModalContent.addEventListener('change', event => {
+            if (event.target.matches('input[name="confirmFactoryStatement"]')) {
+                event.target.form.dataset.dirty = event.target.checked ? 'false' : 'true';
+                event.target.form.dataset.reviewed = event.target.checked ? 'true' : 'false';
                 updateComparisonFeedback(event.target.form);
             }
         });
@@ -6782,7 +6793,9 @@
                 payroll.actual);
             // Only a deliberate Save verifies reviewed inputs. Unread OCR text is
             // intentionally not stored; candidate numeric values remain separate.
-            payroll.reviewedAt = reviewedComparison.complete && reviewedComparison.consistent ? new Date().toISOString() : null;
+            payroll.reviewedAt = reviewedComparison.complete && reviewedComparison.consistent &&
+                form.elements.namedItem('confirmFactoryStatement')?.checked === true &&
+                form.dataset.periodMismatch !== 'true' ? new Date().toISOString() : null;
             if (window.pendingPayslipOcr?.month === month) {
                 payroll.ocrEvidence = {
                     values: { ...window.pendingPayslipOcr.values },
