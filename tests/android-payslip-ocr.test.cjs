@@ -134,7 +134,7 @@ test('a newly uploaded factory slip invalidates old verification and OCR require
     assert.match(html, /form\.elements\.namedItem\('confirmFactoryStatement'\)\?\.checked === true/);
     assert.match(html, /form\.dataset\.reviewed = 'false'/);
     assert.match(html, /if \(confirmation\) confirmation\.checked = false/);
-    assert.match(html, /newly attached or replaced image invalidates/);
+    assert.match(html, /delete nextPayroll\.ocrEvidence/);
     assert.match(html, /reviewedAt: null/);
     assert.match(html, /const reviewedComparison = KoreanPayroll\.compare/);
 });
