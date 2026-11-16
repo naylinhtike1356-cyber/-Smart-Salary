@@ -81,3 +81,13 @@ test('2026 factory payslip payroll engine computes deductions without override',
     assert.equal(3823410 - result.totalDeductions, 3444370);
     assert.ok(table.find(row => row[0] === 3820));
 });
+
+test('all embedded Android HTML JavaScript parses without syntax errors', () => {
+    const vm = require('node:vm');
+    const scripts = Array.from(html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi),
+        match => match[1].trim()).filter(Boolean);
+    assert.ok(scripts.length >= 1);
+    for (const script of scripts) {
+        assert.doesNotThrow(() => new vm.Script(script));
+    }
+});
