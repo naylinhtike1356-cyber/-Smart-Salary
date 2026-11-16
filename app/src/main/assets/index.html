@@ -5732,7 +5732,7 @@
                                 ဖျက်မည်
                             </button>
                         </div>
-                        <input type="file" id="photo-upload-input-${slotNum}" accept="image/*" class="sr-only" onchange="handlePhotoFileSelected('${monthKey}', ${slotNum}, this)">
+                        <input type="file" id="photo-upload-input-${slotNum}" accept="image/*,application/pdf" class="sr-only" onchange="handlePhotoFileSelected('${monthKey}', ${slotNum}, this)">
                     `;
                     card.querySelector('img').src = photo.dataUrl;
                     card.querySelector('[data-open-photo]').addEventListener('click', () => openPhotoLightbox(photo.dataUrl));
@@ -5745,7 +5745,7 @@
                             <span class="text-xs font-bold text-slate-800">${slotLabel}</span>
                             <span class="text-[10px] text-blue-600 font-bold mt-0.5">+ ဓာတ်ပုံတွဲရန်</span>
                         </button>
-                        <input type="file" id="photo-upload-input-${slotNum}" accept="image/*" class="sr-only" onchange="handlePhotoFileSelected('${monthKey}', ${slotNum}, this)">
+                        <input type="file" id="photo-upload-input-${slotNum}" accept="image/*,application/pdf" class="sr-only" onchange="handlePhotoFileSelected('${monthKey}', ${slotNum}, this)">
                     `;
                 }
                 container.appendChild(card);
@@ -5765,6 +5765,21 @@
             if (!input || !input.files || !input.files[0]) return;
             const file = input.files[0];
             try {
+                if (file.size > 12000000) throw new Error('ဖိုင်အရွယ်အစား 12 MB ထက်မကြီးရပါ။');
+                if (file.type === 'application/pdf' || /\.pdf$/i.test(file.name)) {
+                    if (!window.AndroidBridge?.renderPayslipPdf) throw new Error('PDF ကို Android App အတွင်းမှာသာ ဖတ်နိုင်ပါသည်။');
+                    const reader = new FileReader();
+                    reader.onload = event => {
+                        const status = getElement('ocr-status');
+                        if (status) status.textContent = 'PDF စာမျက်နှာ ၁ ကို ဖုန်းထဲတွင် ပြောင်းနေပါသည်…';
+                        window.AndroidBridge.renderPayslipPdf(event.target.result, monthKey, slot);
+                    };
+                    reader.onerror = () => showToast('PDF ဖိုင်မဖတ်နိုင်ပါ။', 'error');
+                    reader.readAsDataURL(file);
+                    input.value = '';
+                    return;
+                }
+                if (!file.type.startsWith('image/')) throw new Error('JPG၊ PNG၊ HEIC သို့မဟုတ် PDF ဖိုင်ကိုသာ အသုံးပြုပါ။');
                 showToast('ဓာတ်ပုံကို ဖိသိပ်နေပါသည်...');
                 const compressed = await window.PayslipPhotoManager.compressImage(file);
                 const saved = await window.PayslipPhotoManager.savePhoto(monthKey, slot, compressed.dataUrl, file.name);
@@ -5828,6 +5843,45 @@
             }
         }
         window.handlePhotoFileSelected = handlePhotoFileSelected;
+        window.onPayslipPdfRendered = async function(month, slot, response) {
+            if (!validMonthKey(month) || ![1, 2].includes(slot) || month !== currentPayslipMonth) return;
+            if (!response?.ok) {
+                showToast('PDF မဖတ်နိုင်ပါ — ' + String(response?.error || 'Unknown error'), 'error');
+                return;
+            }
+            const dataUrl = response.dataUrl;
+            if (typeof dataUrl !== 'string' || !/^data:image\/jpeg;base64,/i.test(dataUrl)) return;
+            const saved = await window.PayslipPhotoManager.savePhoto(month, slot, dataUrl, 'payslip-page1.jpg');
+            if (!saved) {
+                showToast('PDF မှ ထုတ်ထားသော ဓာတ်ပုံကို မသိမ်းနိုင်ပါ။', 'error');
+                return;
+            }
+            // Replacing a payslip document invalidates its previous verification.
+            const extras = state.monthlyExtras;
+            state.monthlyExtras = extras.map(extra =>
+                extra.month === month && extra.payroll ? {...extra, payroll: {...extra.payroll, reviewedAt: null}} : extra);
+            if (saveState(false) === false) state.monthlyExtras = extras;
+            const form = getElement('payroll-comparison-form');
+            if (form?.dataset.month === month) {
+                form.dataset.reviewed = 'false';
+                form.dataset.dirty = 'true';
+                updateComparisonFeedback(form);
+            }
+            renderPayslipPhotos(month);
+            const preview = getElement('ocr-photo-preview');
+            if (preview) {
+                preview.src = dataUrl;
+                preview.style.display = 'block';
+                getElement('ocr-photo-empty')?.classList.add('hidden');
+            }
+            const status = getElement('ocr-status');
+            if (status) status.textContent = response.firstPageOnly ?
+                'PDF မှ ပထမစာမျက်နှာကိုသာ ဖတ်နေပါသည်။ ကျန်စာမျက်နှာများကို သီးခြားစစ်ပါ။' :
+                'PDF ရှင်းတမ်းကို OCR ဖတ်နေပါသည်…';
+            window.AndroidBridge?.recognizePayslip?.(dataUrl, month);
+            renderRecordTable();
+        };
+
         window.onPayslipOcrResult = function(month, envelope) {
             const status = getElement('ocr-status');
             if (month !== currentPayslipMonth) return;
