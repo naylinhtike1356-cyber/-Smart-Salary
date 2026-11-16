@@ -5840,6 +5840,12 @@
                 if (!file.type.startsWith('image/')) throw new Error('JPG၊ PNG၊ HEIC သို့မဟုတ် PDF ဖိုင်ကိုသာ အသုံးပြုပါ။');
                 showToast('ဓာတ်ပုံကို ဖိသိပ်နေပါသည်...');
                 const compressed = await window.PayslipPhotoManager.compressImage(file);
+                const previousPhotos = await window.PayslipPhotoManager.getPhotos(monthKey);
+                if (previousPhotos.some(photo => photo.slot === slot && photo.dataUrl === compressed.dataUrl)) {
+                    showToast('ဤရှင်းတမ်းပုံကို သိမ်းထားပြီးသားဖြစ်ပါတယ်။', 'info');
+                    input.value = '';
+                    return;
+                }
                 const saved = await window.PayslipPhotoManager.savePhoto(monthKey, slot, compressed.dataUrl, file.name);
                 if (!saved) {
                     showToast(payrollLabels().saveError, 'error');
@@ -5867,17 +5873,6 @@
                     openForm.dataset.reviewed = 'false';
                     openForm.dataset.dirty = 'true';
                     updateComparisonFeedback(openForm);
-                }
-                // A newly attached or replaced image invalidates a previous verified comparison.
-                const previousExtras = state.monthlyExtras;
-                const oldExtra = previousExtras.find(ex => ex.month === monthKey) || { month: monthKey };
-                if (oldExtra.payroll?.reviewedAt) {
-                    const payroll = { ...oldExtra.payroll, reviewedAt: null };
-                    state.monthlyExtras = [
-                        ...previousExtras.filter(ex => ex.month !== monthKey),
-                        { ...oldExtra, month: monthKey, payroll }
-                    ];
-                    if (saveState(false) === false) state.monthlyExtras = previousExtras;
                 }
                 showToast('လစာစာရွက် ဓာတ်ပုံ သိမ်းဆည်းပြီးပါပြီ။');
                 renderPayslipPhotos(monthKey);
@@ -5909,6 +5904,11 @@
             }
             const dataUrl = response.dataUrl;
             if (typeof dataUrl !== 'string' || !/^data:image\/jpeg;base64,/i.test(dataUrl)) return;
+            const existingPdfPhotos = await window.PayslipPhotoManager.getPhotos(month);
+            if (existingPdfPhotos.some(photo => photo.slot === slot && photo.dataUrl === dataUrl)) {
+                showToast('ဤ PDF စာမျက်နှာကို သိမ်းထားပြီးသားဖြစ်ပါတယ်။', 'info');
+                return;
+            }
             const saved = await window.PayslipPhotoManager.savePhoto(month, slot, dataUrl, 'payslip-page1.jpg');
             if (!saved) {
                 showToast('PDF မှ ထုတ်ထားသော ဓာတ်ပုံကို မသိမ်းနိုင်ပါ။', 'error');
@@ -5916,8 +5916,13 @@
             }
             // Replacing a payslip document invalidates its previous verification.
             const extras = state.monthlyExtras;
-            state.monthlyExtras = extras.map(extra =>
-                extra.month === month && extra.payroll ? {...extra, payroll: {...extra.payroll, reviewedAt: null}} : extra);
+            state.monthlyExtras = extras.map(extra => {
+                if (extra.month !== month || !extra.payroll) return extra;
+                const payroll = { ...extra.payroll, reviewedAt: null };
+                delete payroll.ocrEvidence;
+                return { ...extra, payroll };
+            });
+            window.pendingPayslipOcr = null;
             if (saveState(false) === false) state.monthlyExtras = extras;
             const form = getElement('payroll-comparison-form');
             if (form?.dataset.month === month) {
