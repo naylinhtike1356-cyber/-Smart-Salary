@@ -28,7 +28,7 @@ const KoreanPayslipOCR = (() => {
         return matches.length ? matches[matches.length - 1] : null;
     };
     const findKey = label => {
-        const cleaned = normalize(label).replace(/[：:]/g, '');
+        const cleaned = normalize(label).replace(/[：:]/g, '').replace(/\(원\)$/g, '');
         return items.find(([, pattern]) => pattern.test(cleaned))?.[0] || null;
     };
     const parse = payload => {
