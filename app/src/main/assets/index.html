@@ -5437,10 +5437,14 @@
                 return '<tr class="border-b align-top">' +
                     '<td class="p-2 font-bold whitespace-nowrap">' + month + '</td>' +
                     '<td class="p-2 text-right"><div class="text-xs text-slate-500">App ခန့်မှန်း</div><strong>' + fmt(data.grossPay) + '</strong>' +
-                    '<div class="text-xs text-blue-700">စက်ရုံ ' + fmt(actualGross) + '</div>' +
+                    '<label class="text-xs text-blue-700 block">စက်ရုံရငွေ<input aria-label="စက်ရုံရငွေ ' + month +
+                    '" data-record-actual="gross" data-month="' + month + '" type="number" min="0" step="1" class="block w-28 ml-auto border rounded p-1 text-right" value="' +
+                    (actualGross === null ? '' : actualGross) + '"></label>' +
                     delta(actualGross, data.grossPay) + '</td>' +
                     '<td class="p-2 text-right"><div class="text-xs text-slate-500">App ခန့်မှန်း</div><strong>' + fmt(data.totalDeductions) + '</strong>' +
-                    '<div class="text-xs text-red-700">စက်ရုံ ' + fmt(actualDeduct) + '</div>' +
+                    '<label class="text-xs text-red-700 block">စက်ရုံဖြတ်ငွေ<input aria-label="စက်ရုံဖြတ်ငွေ ' + month +
+                    '" data-record-actual="deductions" data-month="' + month + '" type="number" min="0" step="1" class="block w-28 ml-auto border rounded p-1 text-right" value="' +
+                    (actualDeduct === null ? '' : actualDeduct) + '"></label>' +
                     delta(actualDeduct, data.totalDeductions) + '</td>' +
                     '<td class="p-2 text-right"><strong>' + fmt(data.netSalary) + '</strong><div class="text-xs text-slate-500">စက်ရုံ ' +
                     fmt(actualNet) + '</div>' + delta(actualNet, data.netSalary) +
@@ -6759,6 +6763,28 @@
             renderRecordTable();
             syncWidgetData();
             showToast(labels.saved, 'success');
+        });
+
+        elements.recordTableBody.addEventListener('change', event => {
+            const input = event.target.closest('input[data-record-actual]');
+            if (!input || !validMonthKey(input.dataset.month)) return;
+            const month = input.dataset.month;
+            const field = input.dataset.recordActual;
+            if (!['gross', 'deductions'].includes(field)) return;
+            const raw = input.value === '' ? null : input.valueAsNumber;
+            if (raw !== null && (!Number.isSafeInteger(raw) || raw < 0)) {
+                showToast('0 နှင့်အထက် ဝမ်ပြည့်ဂဏန်းထည့်ပါ။', 'error');
+                renderRecordTable();
+                return;
+            }
+            const prior = state.monthlyExtras;
+            const existing = prior.find(item => item.month === month) || { month };
+            const previousActual = getPayrollActual(existing);
+            const actual = { ...previousActual, [field]: raw, net: null };
+            const payroll = { ...(existing.payroll || {}), actual };
+            state.monthlyExtras = [...prior.filter(item => item.month !== month), { ...existing, month, payroll }];
+            if (saveState() === false) { state.monthlyExtras = prior; return; }
+            renderRecordTable();
         });
 
         elements.recordTableBody.addEventListener('click', event => {
