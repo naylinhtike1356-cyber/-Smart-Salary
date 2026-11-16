@@ -64,6 +64,8 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     implementation("androidx.work:work-runtime-ktx:2.9.0")
+    // Bundled on-device Korean OCR; recognition does not upload payslip photos.
+    implementation("com.google.mlkit:text-recognition-korean:16.0.1")
 
     // Google Drive & Auth
     implementation(libs.play.services.auth)
