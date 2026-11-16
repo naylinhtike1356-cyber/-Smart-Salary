@@ -158,3 +158,22 @@ test('Android PDF first-page support stays local and reviewed export is availabl
     assert.match(html, /if \(!data\.extra\.payroll\?\.reviewedAt \|\| !data\.comparison\.complete\)/);
     assert.doesNotMatch(html, /fetch\([^\n]{0,80}PayslipPdf/);
 });
+
+test('comparison rows have text states, prevent wrong-period Save and invalidate replacement photo', () => {
+    assert.match(html, /data-row-state/);
+    assert.match(html, /DIFFERENT · UNVERIFIED/);
+    assert.match(html, /'MATCHED'/);
+    assert.match(html, /'MISSING'/);
+    assert.match(html, /form\.dataset\.periodMismatch === 'true'/);
+    assert.match(html, /nextPayroll = \{ \.\.\.existingExtra\.payroll, reviewedAt: null \}/);
+    assert.match(html, /saveState\(false\)/);
+});
+test('Android supported document input stays scoped to image and PDF', () => {
+    const kotlin = fs.readFileSync(path.join(__dirname, '../app/src/main/java/com/naylinhtike/salarytracker/MainActivity.kt'), 'utf8');
+    assert.match(kotlin, /PdfRenderer/);
+    assert.match(kotlin, /renderPayslipPdf/);
+    assert.match(html, /application\/pdf/);
+    assert.match(html, /window\.onPayslipPdfRendered/);
+    assert.match(kotlin, /FileProvider\.getUriForFile/);
+    assert.doesNotMatch(html, /https?:\/\/[^\s'"<>]+(?:ocr|recognition)\//i);
+});
