@@ -5328,8 +5328,23 @@
             photoButton.classList.add('hidden');
             photoButton.onclick = null;
             elements.payslipModalContent.innerHTML = `<div class="space-y-3">
-                <details id="payslip-photo-section" class="rounded-lg border border-slate-200 p-2">
-                    <summary class="cursor-pointer p-1 font-semibold">${labels.photo}</summary>
+                <div class="grid grid-cols-2 gap-3 items-start">
+                    <div class="rounded-lg border border-slate-200 p-2 min-w-0">
+                        <div class="font-semibold text-xs mb-1">စက်ရုံရှင်းတမ်း ဓာတ်ပုံ</div>
+                        <img id="ocr-photo-preview" alt="စက်ရုံလစာရှင်းတမ်း" class="w-full rounded border object-contain max-h-64 bg-slate-50" style="display:none">
+                        <p id="ocr-photo-empty" class="text-xs text-slate-500">ဓာတ်ပုံထည့်ပြီး OCR ဖတ်နိုင်ပါသည်</p>
+                        <p id="ocr-status" role="status" aria-live="polite" class="text-xs text-slate-600 mt-2">ဓာတ်ပုံက စက်ပေါ်မှာသာ OCR ဖတ်ပါမည်။</p>
+                    </div>
+                    <div class="rounded-lg border border-blue-100 bg-blue-50 p-2 min-w-0">
+                        <div class="font-semibold text-xs mb-2">App / စက်ရုံ နှိုင်းယှဉ်မှု</div>
+                        <div class="text-xs">App Gross: <strong>${formatKrw(data.grossPay)}</strong></div>
+                        <div class="text-xs">App Deductions: <strong>${formatKrw(data.totalDeductions)}</strong></div>
+                        <div class="text-xs">App Net: <strong>${formatKrw(data.netSalary)}</strong></div>
+                        <p class="text-xs mt-2 text-slate-600">အောက်ပါ စက်ရုံကော်လံကို OCR ဖြည့်ပြီး အတည်ပြုပါ။</p>
+                    </div>
+                </div>
+                <details id="payslip-photo-section" class="rounded-lg border border-slate-200 p-2" open>
+                    <summary class="cursor-pointer p-1 font-semibold">${labels.photo} · ဓာတ်ပုံရိုက်/ရွေး</summary>
                     <div id="payslip-photo-slots" data-month="${month}" class="grid grid-cols-2 gap-2 mt-2"></div>
                 </details>
                 <form id="payroll-comparison-form" class="payroll-form space-y-3" data-month="${month}">
@@ -5583,6 +5598,12 @@
             const displayablePhotos = photos.filter(photo =>
                 typeof photo?.dataUrl === 'string' && /^data:image\/(?:jpeg|png|webp|gif);base64,/i.test(photo.dataUrl));
             const primaryPhoto = displayablePhotos.find(photo => photo.slot === 1) || displayablePhotos[0];
+            const preview = getElement('ocr-photo-preview');
+            if (preview && container.dataset.month === currentPayslipMonth && primaryPhoto) {
+                preview.src = primaryPhoto.dataUrl;
+                preview.style.display = 'block';
+                getElement('ocr-photo-empty')?.classList.add('hidden');
+            }
             photoButton.classList.toggle('hidden', !primaryPhoto);
             photoButton.onclick = primaryPhoto ? () => openPhotoLightbox(primaryPhoto.dataUrl) : null;
 
@@ -5668,12 +5689,60 @@
                 }
                 showToast('လစာစာရွက် ဓာတ်ပုံ သိမ်းဆည်းပြီးပါပြီ။');
                 renderPayslipPhotos(monthKey);
+                const preview = getElement('ocr-photo-preview');
+                if (preview && currentPayslipMonth === monthKey) {
+                    preview.src = compressed.dataUrl;
+                    preview.style.display = 'block';
+                    getElement('ocr-photo-empty')?.classList.add('hidden');
+                }
+                if (window.AndroidBridge?.recognizePayslip) {
+                    const status = getElement('ocr-status');
+                    if (status) status.textContent = 'ကိုရီးယားစာရွက်ကို ဖုန်းထဲတွင် ဖတ်နေပါသည်…';
+                    window.AndroidBridge.recognizePayslip(compressed.dataUrl, monthKey);
+                } else {
+                    const status = getElement('ocr-status');
+                    if (status) status.textContent = 'ဤဗားရှင်းတွင် OCR မရပါ။ စက်ရုံကော်လံကို ကိုယ်တိုင်ဖြည့်နိုင်ပါသည်။';
+                }
                 renderRecordTable();
             } catch (err) {
                 showToast(`ဓာတ်ပုံသိမ်းဆည်းရာတွင် အမှားတက်ခဲ့သည်: ${err.message}`, 'error');
             }
         }
         window.handlePhotoFileSelected = handlePhotoFileSelected;
+        window.onPayslipOcrResult = function(month, envelope) {
+            const status = getElement('ocr-status');
+            if (month !== currentPayslipMonth) return;
+            const form = getElement('payroll-comparison-form');
+            if (!form || form.dataset.month !== month) return;
+            if (!envelope || envelope.ok !== true) {
+                if (status) status.textContent = 'OCR မအောင်မြင်ပါ — ' +
+                    String(envelope?.error || 'Unknown error') + '။ ဂဏန်းကို ကိုယ်တိုင်ပြင်ဖြည့်နိုင်ပါသည်။';
+                return;
+            }
+            try {
+                const parsed = KoreanPayslipOCR.parse(envelope.result);
+                let populated = 0;
+                const skipped = [];
+                for (const [key, value] of Object.entries(parsed.values)) {
+                    const name = ['gross','deductions','net'].includes(key) ? key : 'line_' + key;
+                    const field = form.elements.namedItem(name);
+                    if (!field || field.value !== '') {
+                        skipped.push(key);
+                        continue;
+                    }
+                    field.value = String(value);
+                    populated++;
+                }
+                updateComparisonFeedback(form);
+                const info = parsed.warnings.join(' ');
+                if (status) status.textContent = 'OCR ဖတ်ပြီး: ' + parsed.recognized + ' ချက် · ဖြည့်ပြီး ' + populated +
+                    ' ချက်။ မူလစာရွက်နဲ့ စစ်ဆေးပြီးမှ သိမ်းပါ။ ' + info +
+                    (skipped.length ? ' ရှိပြီးသားတန်ဖိုးများကို မအစားထိုးထားပါ။' : '');
+            } catch (error) {
+                if (status) status.textContent = 'စာရွက် OCR အချက်အလက်မဖတ်နိုင်ပါ။ ကိုယ်တိုင်ဖြည့်နိုင်ပါသည်။';
+            }
+        };
+
 
         function confirmDeletePhoto(monthKey, slot) {
             currentDeletingPhotoInfo = { monthKey, slot };
@@ -5903,7 +5972,7 @@
                 `;
             getElement('payslip-actions').classList.remove('hidden');
             getElement('payroll-compare-actions').classList.add('hidden');
-            getElement('payslip-compare-btn').textContent = payrollLabels().compare;
+            getElement('payslip-compare-btn').textContent = 'စက်ရုံရှင်းတမ်း ဓာတ်ပုံထည့်၍ ယှဉ်ကြည့်ရန်';
             elements.payslipModalContent.scrollTop = 0;
             openPayslipModal();
         };
