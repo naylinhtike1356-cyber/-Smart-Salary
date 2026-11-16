@@ -48,7 +48,7 @@
         </provider>
         <provider
             android:name=".SalaryDataProvider"
-            android:authorities="com.naylinhtike.salarytracker.voiceprovider"
+            android:authorities="${applicationId}.voiceprovider"
             android:exported="false" />
         <receiver android:name=".SalaryWidgetProvider" android:exported="true">
             <intent-filter>
