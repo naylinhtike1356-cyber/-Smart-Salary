@@ -34,7 +34,7 @@ jobs:
       - name: Check Android payroll and OCR rules
         run: node --test tests/android-payroll.test.cjs tests/android-payslip-ocr.test.cjs
       - name: Compile Android internal QA APK
-        run: ./gradlew :app:assembleDebug --no-daemon
+        run: bash ./gradlew :app:assembleDebug --no-daemon
       - name: Check Android APK output
         run: test -s app/build/outputs/apk/debug/app-debug.apk
       - name: Archive QA-only APK
