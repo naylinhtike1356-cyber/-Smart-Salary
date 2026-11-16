@@ -5294,7 +5294,8 @@
                     const min = ['net', 'grossAdjustment'].includes(row.key) ? -10000000000 : 0;
                     const fieldName = row.total ? row.key : 'line_' + row.key;
                     return `<tr class="border-b border-slate-100">
-                        <th scope="row" class="p-1 text-left font-medium break-words">${row.label}</th>
+                        <th scope="row" class="p-1 text-left font-medium break-words">${row.label}
+                            <span data-row-state class="block text-[10px] font-semibold text-slate-600">UNVERIFIED</span></th>
                         <td class="p-1 text-right">${comparisonNumber(row.estimate, row.unit)}</td>
                         <td class="p-1"><input aria-label="${labels.actual} · ${row.label}" type="number" inputmode="${step < 1 || min < 0 ? 'decimal' : 'numeric'}"
                             name="${fieldName}" min="${min}" max="${row.unit === 'won' ? 10000000000 : 1000}" step="${step}"
@@ -5324,6 +5325,17 @@
                 cell.textContent = (difference > 0 ? '+' : '') + comparisonNumber(difference, unit);
                 cell.classList.toggle('text-red-700', difference !== null && difference !== 0);
                 input.closest('tr').classList.toggle('bg-red-50', difference !== null && difference !== 0);
+                const verified = form.dataset.reviewed === 'true' && form.dataset.dirty !== 'true' &&
+                    form.dataset.periodMismatch !== 'true';
+                const label = input.closest('tr').querySelector('[data-row-state]');
+                if (label) {
+                    const state = difference === null ? 'MISSING' :
+                        !verified ? (difference !== 0 ? 'DIFFERENT · UNVERIFIED' : 'UNVERIFIED') :
+                        difference === 0 ? 'MATCHED' : 'DIFFERENT';
+                    label.textContent = state;
+                    label.classList.toggle('text-red-700', difference !== null && difference !== 0);
+                    label.classList.toggle('text-emerald-700', verified && difference === 0);
+                }
                 if (['gross', 'deductions', 'net'].includes(input.name)) {
                     actual[input.name] = entered;
                     estimate[input.name] = expected;
