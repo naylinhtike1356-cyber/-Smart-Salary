@@ -94,7 +94,7 @@ const KoreanPayroll = (() => {
     function compare(estimate, actual) {
         const keys = ['gross', 'deductions', 'net'];
         const differences = Object.fromEntries(keys.map(key => [
-            key, Number.isSafeInteger(actual[key]) ? actual[key] - estimate[key] : null
+            key, Number.isSafeInteger(actual[key]) ? estimate[key] - actual[key] : null
         ]));
         const complete = keys.every(key => differences[key] !== null);
         const consistent = !complete || actual.gross - actual.deductions === actual.net;
@@ -115,7 +115,7 @@ const KoreanPayroll = (() => {
             const value = Number.isFinite(entered) ? Math.round(entered * scale) : null;
             return {
                 key, labelKey, unit, estimate: rounded / scale, actual: value === null ? null : value / scale,
-                difference: value === null ? null : (value - rounded) / scale
+                difference: value === null ? null : (rounded - value) / scale
             };
         };
         const earnings = Object.keys(earningsLines).map(key => line(
