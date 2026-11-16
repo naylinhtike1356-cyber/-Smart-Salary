@@ -25,6 +25,7 @@ import android.webkit.WebViewClient
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import java.io.File
 import java.io.OutputStream
 import androidx.lifecycle.lifecycleScope
@@ -46,6 +47,7 @@ class MainActivity : AppCompatActivity() {
 
     private var webView: WebView? = null
     private var uploadMessage: ValueCallback<Array<Uri>>? = null
+    private var pendingCameraPhotoUri: Uri? = null
     private var pendingQuickAddToday = false
     private var pendingCopyYesterday = false
     private var pageLoaded = false
@@ -118,9 +120,13 @@ class MainActivity : AppCompatActivity() {
 
     private val filePickerLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (uploadMessage == null) return@registerForActivityResult
-        val results = WebChromeClient.FileChooserParams.parseResult(result.resultCode, result.data)
+        val picked = WebChromeClient.FileChooserParams.parseResult(result.resultCode, result.data)
+        val results = if (result.resultCode == RESULT_OK) {
+            picked ?: pendingCameraPhotoUri?.let { arrayOf(it) }
+        } else null
         uploadMessage?.onReceiveValue(results)
         uploadMessage = null
+        pendingCameraPhotoUri = null
     }
 
     private fun logCustomEvent(eventName: String, params: Bundle? = null) {
@@ -730,14 +736,40 @@ class MainActivity : AppCompatActivity() {
                 uploadMessage = filePathCallback
 
                 try {
-                    val intent = fileChooserParams?.createIntent()
-                    if (intent != null) {
-                        filePickerLauncher.launch(intent)
-                    } else {
+                    val pickIntent = fileChooserParams?.createIntent() ?: run {
                         uploadMessage = null
                         return false
                     }
+                    val acceptsImages = fileChooserParams.acceptTypes.any {
+                        it == "image/*" || it.startsWith("image/")
+                    }
+                    if (acceptsImages) {
+                        val tempPhoto = File.createTempFile(
+                            "smart-salary-payslip-", ".jpg", externalCacheDir ?: cacheDir
+                        )
+                        val cameraUri = FileProvider.getUriForFile(
+                            this@MainActivity, "${packageName}.fileprovider", tempPhoto
+                        )
+                        val camera = Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
+                            putExtra(MediaStore.EXTRA_OUTPUT, cameraUri)
+                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+                        }
+                        if (camera.resolveActivity(packageManager) != null) {
+                            pendingCameraPhotoUri = cameraUri
+                            filePickerLauncher.launch(Intent.createChooser(pickIntent, "စက်ရုံရှင်းတမ်း ဓာတ်ပုံ").apply {
+                                putExtra(Intent.EXTRA_INITIAL_INTENTS, arrayOf(camera))
+                            })
+                        } else {
+                            pendingCameraPhotoUri = null
+                            filePickerLauncher.launch(pickIntent)
+                        }
+                    } else {
+                        pendingCameraPhotoUri = null
+                        filePickerLauncher.launch(pickIntent)
+                    }
                 } catch (e: Exception) {
+                    pendingCameraPhotoUri = null
+                    uploadMessage?.onReceiveValue(null)
                     uploadMessage = null
                     return false
                 }
