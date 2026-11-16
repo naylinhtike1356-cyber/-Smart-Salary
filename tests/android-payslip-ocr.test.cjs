@@ -128,3 +128,19 @@ test('all differences use App minus Factory and preserve incomplete states', () 
     assert.match(html, /applyRestoredBackup\(content\)/);
     assert.match(html, /prefers-reduced-motion/);
 });
+
+test('a newly uploaded factory slip invalidates old verification and OCR requires explicit review', () => {
+    assert.match(html, /name="confirmFactoryStatement"/);
+    assert.match(html, /form\.elements\.namedItem\('confirmFactoryStatement'\)\?\.checked === true/);
+    assert.match(html, /form\.dataset\.reviewed = 'false'/);
+    assert.match(html, /if \(confirmation\) confirmation\.checked = false/);
+    assert.match(html, /newly attached or replaced image invalidates/);
+    assert.match(html, /reviewedAt: null/);
+    assert.match(html, /const reviewedComparison = KoreanPayroll\.compare/);
+});
+test('comparison rows animate without disabling accessibility', () => {
+    assert.match(html, /prefers-reduced-motion:\s*reduce/);
+    assert.match(html, /focus-visible/);
+    assert.match(html, /data-comparison-overview/);
+    assert.match(html, /App\s*[−-]\s*စက်ရုံ/);
+});
