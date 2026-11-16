@@ -5,10 +5,11 @@
 const KoreanPayslipOCR = (() => {
     const items = [
         ['regularbasePay', /^(?:기본급|기본\s*급)$/],
-        ['regularotPay', /^(?:연장근로수당|연장\s*근로\s*수당)$/],
-        ['holidayotPay', /^휴일수당\s*\(?연장\)?$/],
-        ['holidaybasePay', /^휴일수당\s*\(?일반\)?$/],
-        ['weeklyHolidayPay', /^주휴수당(?:\s*\(만근\))?$/],
+        ['regularotPay', /^(?:연장근로수당|연장근무수당|시간외근로수당)$/],
+        ['holidayotPay', /^(?:휴일수당\(?연장\)?|휴일연장근로수당)$/],
+        ['holidaybasePay', /^(?:휴일수당\(?일반\)?|휴일근로수당|휴일근무수당)$/],
+        ['weeklyHolidayPay', /^주휴수당(?:\(만근\))?$/],
+        ['nightallowancePay', /^(?:야간근로수당|야간수당)$/],
         ['otherallowancePay', /^(?:직무수당|직무\s*수당)$/],
         ['bonusPay', /^(?:기타수당|상여금)$/],
         ['nationalPension', /^(?:국민연금|국민\s*연금)$/],
@@ -17,9 +18,9 @@ const KoreanPayslipOCR = (() => {
         ['employmentInsurance', /^고용보험$/],
         ['incomeTax', /^소득세$/],
         ['localIncomeTax', /^지방소득세$/],
-        ['gross', /^(?:지급액계|지급액합계|총지급액|지급합계)$/],
-        ['deductions', /^(?:공제액계|공제액합계|총공제액|공제합계)$/],
-        ['net', /^(?:실수령액|차인지급액|실지급액)$/]
+        ['gross', /^(?:지급액계|지급액합계|총지급액|지급합계|지급총액)$/],
+        ['deductions', /^(?:공제액계|공제액합계|총공제액|공제합계|공제총액)$/],
+        ['net', /^(?:실수령액|차인지급액|실지급액|실지급총액)$/]
     ];
     const normalize = value => String(value || '').replace(/\s+/g, '').replace(/[\[\]]/g, '');
     const moneyPattern = /(?:^|[^\d])(\d{1,3}(?:,\d{3})+|\d{4,10})(?!\d)/g;
@@ -49,11 +50,13 @@ const KoreanPayslipOCR = (() => {
             row.fragments.push({ left, text: line.text.trim() });
         }
         const candidates = {};
+        const conflicted = new Set();
         const warnings = [];
         const offer = (key, value, sourceText) => {
-            if (!Number.isSafeInteger(value) || value < 0 || !key) return;
+            if (!Number.isSafeInteger(value) || value < 0 || !key || conflicted.has(key)) return;
             if (Object.hasOwn(candidates, key) && candidates[key] !== value) {
                 delete candidates[key];
+                conflicted.add(key);
                 warnings.push('Different values detected for ' + key + '; review the photo.');
                 return;
             }
@@ -75,7 +78,7 @@ const KoreanPayslipOCR = (() => {
         const ordered = lines.map(x => String(x?.text || '').trim()).filter(Boolean);
         for (let i = 0; i + 1 < ordered.length; i++) {
             const key = findKey(ordered[i]);
-            if (key && !Object.hasOwn(candidates, key) &&
+            if (key && !Object.hasOwn(candidates, key) && !conflicted.has(key) &&
                 /^\s*[\d,]{4,12}\s*$/.test(ordered[i + 1])) {
                 offer(key, Number(ordered[i + 1].replace(/,/g, '')), ordered[i] + ' ' + ordered[i + 1]);
             }
