@@ -29,7 +29,7 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - uses: android-actions/setup-android@v3
+      # ubuntu-latest already provides Android SDK; avoid deprecated sdkmanager 'tools' package.
       - uses: gradle/actions/setup-gradle@v4
       - name: Check Android payroll and OCR rules
         run: node --test tests/android-payroll.test.cjs tests/android-payslip-ocr.test.cjs
