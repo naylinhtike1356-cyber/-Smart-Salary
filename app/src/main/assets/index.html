@@ -1039,14 +1039,18 @@
                     </div>
                 </div>
 
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm tabular-nums">
+                <p class="text-xs text-slate-500 mb-2">အရင်မှတ်တမ်းပုံစံ • လစာ၊ ဖြတ်ငွေ၊ ကျန်ငွေ၊ မိဘသို့လွှဲငွေ</p>
+                <div class="overflow-x-auto" role="region" aria-label="လစဉ်လစာမှတ်တမ်း" tabindex="0">
+                    <table class="min-w-[850px] w-full text-sm tabular-nums">
                         <thead class="border-b border-slate-200 bg-slate-50 text-xs text-slate-700">
                             <tr>
                                 <th id="th-month" scope="col" class="p-2 text-left">လ</th>
                                 <th id="th-income" scope="col" class="p-2 text-right">စုစုပေါင်းရငွေ</th>
-                                <th id="th-deductions" scope="col" class="p-2 text-right">ဖြတ်ငွေ</th>
+                                <th id="th-deductions" scope="col" class="p-2 text-right">စုစုပေါင်းဖြတ်ငွေ</th>
                                 <th id="th-net" scope="col" class="p-2 text-right">အသားတင်</th>
+                                <th id="th-parents-won" scope="col" class="p-2 text-right">မိဘသို့ (ဝမ်)</th>
+                                <th id="th-parents-local" scope="col" class="p-2 text-right">မိဘသို့ (ကျပ်)</th>
+                                <th id="th-payslip" scope="col" class="p-2 text-center">ရှင်းတမ်း</th>
                             </tr>
                         </thead>
                         <tbody id="record-table-body"></tbody>
@@ -2339,6 +2343,7 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="korean-withholding-table.js"></script>
 <script src="korean-payroll.js"></script>
+<script src="korean-payslip-ocr.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
 
@@ -5387,38 +5392,56 @@
             const years = new Set([new Date().getFullYear(), ...sortedMonths.map(month => Number(month.slice(0, 4)))]);
             elements.yearSelect.replaceChildren(...[...years].sort((a, b) => b - a).map(year =>
                 new Option(year, year, false, year === state.viewingYear)));
-
             const visible = sortedMonths.filter(month => month.startsWith(String(state.viewingYear)));
             elements.recordTableFooter.hidden = visible.length === 0;
-            const labels = payrollLabels();
-            const totals = { gross: 0, deductions: 0, net: 0 };
+            const totals = { gross: 0, deductions: 0, net: 0, parentsWon: 0, parentsKyat: 0 };
+            const status = data => {
+                const actual = data.actual;
+                const comparison = data.comparison;
+                if (!comparison.complete) return '<span class="text-slate-500 text-xs">စက်ရုံဒေတာ မပြည့်သေး</span>';
+                if (comparison.matches) return '<span class="text-emerald-700 text-xs font-bold">✓ သုံးမျိုးလုံး ကိုက်ညီ</span>';
+                return '<span class="text-red-700 text-xs font-bold">⚠ ရငွေ / ဖြတ်ငွေ / ကျန်ငွေ ကွာနေသည်</span>';
+            };
             elements.recordTableBody.innerHTML = visible.map(month => {
                 const data = calculateMonthSalaryData(month);
+                const actual = data.actual;
+                const extra = data.extra;
+                const actualGross = Number.isSafeInteger(actual.gross) ? actual.gross : null;
+                const actualDeduct = Number.isSafeInteger(actual.deductions) ? actual.deductions : null;
+                const actualNet = Number.isSafeInteger(actual.net) ? actual.net :
+                    (actualGross !== null && actualDeduct !== null ? actualGross - actualDeduct : null);
+                const fmt = value => value === null ? '—' : formatKrw(value);
+                const delta = (value, estimate) => value === null ? '' :
+                    '<span class="block text-xs ' + (value === estimate ? 'text-emerald-700' : 'text-red-700') +
+                    '">ကွာ: ' + (value > estimate ? '+' : '') + formatKrw(value - estimate) + '</span>';
                 totals.gross += data.grossPay;
                 totals.deductions += data.totalDeductions;
                 totals.net += data.netSalary;
-                const lines = KoreanPayroll.payslipLines(data, data.actual.lines || {});
-                const hasDifference = Object.values(data.comparison.differences).some(gap => gap !== null && gap !== 0) ||
-                    Object.values(lines).some(group => group.some(line => line.difference !== null && line.difference !== 0));
-                return `<tr class="border-t border-slate-100">
-                    <th scope="row" class="p-2 text-left">${month}</th>
-                    <td class="p-2 text-right">${formatKrw(data.grossPay)}</td>
-                    <td class="p-2 text-right">${formatKrw(data.totalDeductions)}</td>
-                    <td class="p-2 text-right font-bold">${formatKrw(data.netSalary)}</td>
-                </tr>
-                <tr><td colspan="4" class="px-2 pb-2">
-                    <div class="flex flex-wrap items-center gap-x-3">
-                        <button type="button" data-payslip-month="${month}" class="min-h-[44px] text-sm font-semibold text-blue-700">${t('payslip_btn')}</button>
-                        <button type="button" data-payroll-month="${month}" class="min-h-[44px] text-sm font-semibold text-blue-700">${labels.compare}</button>
-                        ${hasDifference ? `<span class="text-xs font-bold text-red-700">${labels.mismatch}</span>` : ''}
-                    </div>
-                </td></tr>`;
-            }).join('') || `<tr><td colspan="4" class="p-3 text-slate-600">${t('empty_records')}</td></tr>`;
-            elements.recordTableFooter.innerHTML = `<th scope="row" class="p-2 text-left">${t('grand_total')}</th>
-                <td class="p-2 text-right">${formatKrw(totals.gross)}</td><td class="p-2 text-right">${formatKrw(totals.deductions)}</td>
-                <td class="p-2 text-right">${formatKrw(totals.net)}</td>`;
+                totals.parentsWon += Number(extra.parentsWon) || 0;
+                totals.parentsKyat += Number(extra.parentsKyat) || 0;
+                return '<tr class="border-b align-top">' +
+                    '<td class="p-2 font-bold whitespace-nowrap">' + month + '</td>' +
+                    '<td class="p-2 text-right"><div class="text-xs text-slate-500">App ခန့်မှန်း</div><strong>' + fmt(data.grossPay) + '</strong>' +
+                    '<div class="text-xs text-blue-700">စက်ရုံ ' + fmt(actualGross) + '</div>' +
+                    delta(actualGross, data.grossPay) + '</td>' +
+                    '<td class="p-2 text-right"><div class="text-xs text-slate-500">App ခန့်မှန်း</div><strong>' + fmt(data.totalDeductions) + '</strong>' +
+                    '<div class="text-xs text-red-700">စက်ရုံ ' + fmt(actualDeduct) + '</div>' +
+                    delta(actualDeduct, data.totalDeductions) + '</td>' +
+                    '<td class="p-2 text-right"><strong>' + fmt(data.netSalary) + '</strong><div class="text-xs text-slate-500">စက်ရုံ ' +
+                    fmt(actualNet) + '</div>' + delta(actualNet, data.netSalary) +
+                    '<div class="mt-1">' + status(data) + '</div></td>' +
+                    '<td class="p-2 text-right text-emerald-700">' + fmt(Number(extra.parentsWon) || 0) + '</td>' +
+                    '<td class="p-2 text-right text-blue-700">' + fmt(Number(extra.parentsKyat) || 0) + '</td>' +
+                    '<td class="p-2 text-center"><button type="button" data-payslip-month="' + month +
+                    '" class="text-blue-700 font-bold rounded-lg p-2 border border-blue-200 min-h-[44px]">ရှင်းတမ်း / ဓာတ်ပုံ</button></td></tr>';
+            }).join('') || '<tr><td colspan="7" class="p-4 text-center text-slate-500">မှတ်တမ်းမရှိသေးပါ</td></tr>';
+            elements.recordTableFooter.innerHTML = '<th class="p-2 text-left">စုစုပေါင်း</th><td class="p-2 text-right">' +
+                formatKrw(totals.gross) + '</td><td class="p-2 text-right">' +
+                formatKrw(totals.deductions) + '</td><td class="p-2 text-right">' +
+                formatKrw(totals.net) + '</td><td class="p-2 text-right">' +
+                formatKrw(totals.parentsWon) + '</td><td class="p-2 text-right">' +
+                formatKrw(totals.parentsKyat) + '</td><td></td>';
         };
-
 
         function renderSettings() {
             const s = state.settings;
