@@ -521,9 +521,9 @@
                     fetch('release.json?t=' + Date.now())
                         .then(r => r.json())
                         .then(rel => {
-                            rel.currentVersionName = '1.2.4';
-                            rel.currentVersionCode = 7;
-                            rel.updateAvailable = (rel.versionCode > 7);
+                            rel.currentVersionName = '1.2.5';
+                            rel.currentVersionCode = 8;
+                            rel.updateAvailable = (rel.versionCode > 8);
                             if (window.onUpdateCheckResult) window.onUpdateCheckResult(true, rel);
                         })
                         .catch(e => {
@@ -539,8 +539,8 @@
                     document.body.removeChild(a);
                     if (window.onUpdateDownloadStatus) window.onUpdateDownloadStatus('downloading', 'Download started');
                 },
-                getAppVersionName: function() { return '1.2.4'; },
-                getAppVersionCode: function() { return 7; },
+                getAppVersionName: function() { return '1.2.5'; },
+                getAppVersionCode: function() { return 8; },
 
                 updateWidgetSummary: function(summaryText) {
                     console.log("Widget Summary updated:", summaryText);
@@ -1561,7 +1561,7 @@
                 <div class="mt-6 pt-5 border-t border-slate-200">
                     <div class="flex flex-col items-center justify-center text-center space-y-2">
                         <div class="flex items-center gap-2">
-                            <span id="app-version-badge" class="px-2.5 py-0.5 bg-blue-100 text-blue-700 text-[10px] font-bold rounded-full uppercase tracking-wider">Version 1.2.4</span>
+                            <span id="app-version-badge" class="px-2.5 py-0.5 bg-blue-100 text-blue-700 text-[10px] font-bold rounded-full uppercase tracking-wider">Version 1.2.5</span>
                             <span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded-full uppercase tracking-wider">Official</span>
                         </div>
                         <h4 class="text-xs font-bold text-slate-800">Smart Salary Tracker</h4>
@@ -2084,7 +2084,7 @@
             </div>
             <div>
                 <h3 class="text-sm font-bold text-slate-900" id="update-modal-title">App ဗားရှင်းအသစ် ရရှိနေပါသည်</h3>
-                <span id="update-modal-version-badge" class="px-2 py-0.5 bg-blue-50 text-blue-700 text-[10px] font-bold rounded-full">v1.2.4</span>
+                <span id="update-modal-version-badge" class="px-2 py-0.5 bg-blue-50 text-blue-700 text-[10px] font-bold rounded-full">v1.2.5</span>
             </div>
         </div>
         <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1.5">
@@ -7088,7 +7088,7 @@
                         return r.json();
                     })
                     .then(release => {
-                        const curVerName = (window.AndroidBridge && typeof window.AndroidBridge.getAppVersionName === 'function') ? window.AndroidBridge.getAppVersionName() : '1.2.4';
+                        const curVerName = (window.AndroidBridge && typeof window.AndroidBridge.getAppVersionName === 'function') ? window.AndroidBridge.getAppVersionName() : '1.2.5';
                         const curVerCode = (window.AndroidBridge && typeof window.AndroidBridge.getAppVersionCode === 'function') ? window.AndroidBridge.getAppVersionCode() : 7;
                         release.updateAvailable = (release.versionCode > curVerCode);
                         release.currentVersionName = curVerName;
