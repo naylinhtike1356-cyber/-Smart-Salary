@@ -5795,6 +5795,17 @@
                     openForm.dataset.dirty = 'true';
                     updateComparisonFeedback(openForm);
                 }
+                // A newly attached or replaced image invalidates a previous verified comparison.
+                const previousExtras = state.monthlyExtras;
+                const oldExtra = previousExtras.find(ex => ex.month === monthKey) || { month: monthKey };
+                if (oldExtra.payroll?.reviewedAt) {
+                    const payroll = { ...oldExtra.payroll, reviewedAt: null };
+                    state.monthlyExtras = [
+                        ...previousExtras.filter(ex => ex.month !== monthKey),
+                        { ...oldExtra, month: monthKey, payroll }
+                    ];
+                    if (saveState(false) === false) state.monthlyExtras = previousExtras;
+                }
                 showToast('လစာစာရွက် ဓာတ်ပုံ သိမ်းဆည်းပြီးပါပြီ။');
                 renderPayslipPhotos(monthKey);
                 const preview = getElement('ocr-photo-preview');
@@ -5839,6 +5850,9 @@
                 form.dataset.periodMismatch = 'false';
                 form.dataset.ocrPending = 'true';
                 form.dataset.dirty = 'true';
+                form.dataset.reviewed = 'false';
+                const confirmation = form.elements.namedItem('confirmFactoryStatement');
+                if (confirmation) confirmation.checked = false;
                 window.pendingPayslipOcr = { month, values: parsed.values, warnings: parsed.warnings, recognized: parsed.recognized, period: parsed.period, paymentDate: parsed.paymentDate };
                 let populated = 0;
                 const skipped = [];
