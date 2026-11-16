@@ -360,6 +360,25 @@ class MainActivity : AppCompatActivity() {
     }
 
     inner class BackupBridge {
+        /** Android-only local OCR; passes text boxes to the open payslip comparison. */
+        @JavascriptInterface
+        fun recognizePayslip(dataUrl: String, month: String) {
+            if (!Regex("^\\d{4}-(0[1-9]|1[0-2])$").matches(month)) return
+            runOnUiThread {
+                if (isFinishing || isDestroyed) return@runOnUiThread
+                PayslipTextRecognition.recognize(dataUrl) { result ->
+                    val envelope = result.fold(
+                        onSuccess = { json -> JSONObject().put("ok", true).put("result", json) },
+                        onFailure = { e -> JSONObject().put("ok", false).put("error", e.message ?: "OCR unavailable") }
+                    )
+                    webView?.evaluateJavascript(
+                        "window.onPayslipOcrResult?.(${JSONObject.quote(month)},${envelope});",
+                        null
+                    )
+                }
+            }
+        }
+
         @JavascriptInterface
         fun setDailyReminder(enabled: Boolean, timeHHmm: String) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
