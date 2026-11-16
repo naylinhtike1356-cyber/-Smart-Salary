@@ -144,3 +144,17 @@ test('comparison rows animate without disabling accessibility', () => {
     assert.match(html, /data-comparison-overview/);
     assert.match(html, /App\s*[−-]\s*စက်ရုံ/);
 });
+
+test('Android PDF first-page support stays local and reviewed export is available', () => {
+    const kotlin = fs.readFileSync(path.join(__dirname,
+        '../app/src/main/java/com/naylinhtike/salarytracker/MainActivity.kt'), 'utf8');
+    assert.match(kotlin, /fun renderPayslipPdf\(/);
+    assert.match(kotlin, /PdfRenderer\(fd\)/);
+    assert.match(html, /accept="image\/\*,application\/pdf"/);
+    assert.match(html, /onPayslipPdfRendered/);
+    assert.match(html, /function exportVerifiedSalaryComparison/);
+    assert.match(html, /data-export-verified-comparison/);
+    assert.match(html, /App_minus_Factory/);
+    assert.match(html, /if \(!data\.extra\.payroll\?\.reviewedAt \|\| !data\.comparison\.complete\)/);
+    assert.doesNotMatch(html, /fetch\([^\n]{0,80}PayslipPdf/);
+});
