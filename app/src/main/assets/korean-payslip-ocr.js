@@ -50,9 +50,9 @@ const KoreanPayslipOCR = (() => {
             row.fragments.push({ left, text: line.text.trim() });
         }
         const text = String(source?.text || lines.map(line => line.text).join('\n'));
-        const periodText = text.match(/(?:귀속연월|귀속월|급여대상월|급여기간)\s*[:：]?\s*(20\d{2})[.\/년-]\s*(0?[1-9]|1[0-2])(?:\s*월)?/);
+        const periodText = text.match(/(?:귀속연월|귀속월|급여대상월|급여기간)\s*[:：]?\s*(20\d{2})[.\/년-]\s*(1[0-2]|0?[1-9])(?:\s*월)?(?!\d)/);
         const period = periodText ? periodText[1] + '-' + String(periodText[2]).padStart(2, '0') : null;
-        const dateMatch = text.match(/(?:지급일|지급일자)\s*[:：]?\s*(20\d{2})[.\/-]\s*(0?[1-9]|1[0-2])[.\/-]\s*([0-2]?\d|3[01])/);
+        const dateMatch = text.match(/(?:지급일|지급일자)\s*[:：]?\s*(20\d{2})[.\/-]\s*(1[0-2]|0?[1-9])[.\/-]\s*(3[01]|[12]\d|0?[1-9])/);
         const paymentDate = dateMatch ?
             dateMatch[1] + '-' + String(dateMatch[2]).padStart(2, '0') + '-' + String(dateMatch[3]).padStart(2, '0') : null;
         const candidates = {};
