@@ -5972,7 +5972,7 @@
                 `;
             getElement('payslip-actions').classList.remove('hidden');
             getElement('payroll-compare-actions').classList.add('hidden');
-            getElement('payslip-compare-btn').textContent = 'စက်ရုံရှင်းတမ်း ဓာတ်ပုံထည့်၍ ယှဉ်ကြည့်ရန်';
+            getElement('payslip-compare-btn').textContent = 'ဓာတ်ပုံထည့်၍ စက်ရုံရှင်းတမ်းကို ယှဉ်ကြည့်ရန်';
             elements.payslipModalContent.scrollTop = 0;
             openPayslipModal();
         };
@@ -6763,7 +6763,7 @@
 
         elements.recordTableBody.addEventListener('click', event => {
             const button = event.target.closest('[data-payslip-month]');
-            if (button) calculateAndShowPayslip(button.dataset.payslipMonth);
+            if (button) openPayrollComparison(button.dataset.payslipMonth);
             const comparisonButton = event.target.closest('[data-payroll-month]');
             if (comparisonButton) openPayrollComparison(comparisonButton.dataset.payrollMonth);
         });
