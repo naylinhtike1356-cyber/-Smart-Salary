@@ -5361,7 +5361,7 @@
             photoButton.classList.add('hidden');
             photoButton.onclick = null;
             elements.payslipModalContent.innerHTML = `<div class="space-y-3">
-                <div class="grid grid-cols-2 gap-3 items-start">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 items-start">
                     <div class="rounded-lg border border-slate-200 p-2 min-w-0">
                         <div class="font-semibold text-xs mb-1">စက်ရုံရှင်းတမ်း ဓာတ်ပုံ</div>
                         <img id="ocr-photo-preview" alt="စက်ရုံလစာရှင်းတမ်း" class="w-full rounded border object-contain max-h-64 bg-slate-50" style="display:none">
@@ -5452,7 +5452,12 @@
                 const comparison = data.comparison;
                 if (!comparison.complete) return '<span class="text-slate-500 text-xs">စက်ရုံဒေတာ မပြည့်သေး</span>';
                 if (!data.extra.payroll?.reviewedAt) return '<span class="text-amber-700 text-xs">စာရင်းကို မအတည်ပြုရသေး</span>';
-                if (comparison.matches) return '<span class="text-emerald-700 text-xs font-bold">✓ သုံးမျိုးလုံး ကိုက်ညီ</span>';
+                const detailed = Object.values(KoreanPayroll.payslipLines(data, actual.lines || {})).flat();
+                if (detailed.some(item => item.difference !== null && item.difference !== 0))
+                    return '<span class="text-red-700 text-xs font-bold">⚠ လစာအသေးစိတ် ကွာနေသည်</span>';
+                if (comparison.matches && detailed.some(item => item.actual === null))
+                    return '<span class="text-amber-700 text-xs font-bold">စုစုပေါင်းတူ · အသေးစိတ်မပြည့်သေး</span>';
+                if (comparison.matches) return '<span class="text-emerald-700 text-xs font-bold">✓ စာရင်းအားလုံး ကိုက်ညီ</span>';
                 return '<span class="text-red-700 text-xs font-bold">⚠ ရငွေ / ဖြတ်ငွေ / ကျန်ငွေ ကွာနေသည်</span>';
             };
             elements.recordTableBody.innerHTML = visible.map(month => {
@@ -5728,6 +5733,28 @@
                     showToast(payrollLabels().saveError, 'error');
                     input.value = '';
                     return;
+                }
+                // A replaced photo invalidates the previously reviewed statement.
+                const existingExtra = state.monthlyExtras.find(extra => extra.month === monthKey);
+                if (existingExtra?.payroll) {
+                    const previous = state.monthlyExtras;
+                    const nextPayroll = { ...existingExtra.payroll, reviewedAt: null };
+                    delete nextPayroll.ocrEvidence;
+                    state.monthlyExtras = previous.map(extra => extra.month === monthKey ?
+                        { ...extra, payroll: nextPayroll } : extra);
+                    try {
+                        if (saveState(false) === false) state.monthlyExtras = previous;
+                    } catch (error) {
+                        state.monthlyExtras = previous;
+                        showToast('အသစ်ဓာတ်ပုံ သိမ်းပြီးသော်လည်း အတည်ပြုချက် Reset မသိမ်းနိုင်ပါ။', 'error');
+                    }
+                }
+                window.pendingPayslipOcr = null;
+                const openForm = getElement('payroll-comparison-form');
+                if (openForm?.dataset.month === monthKey) {
+                    openForm.dataset.reviewed = 'false';
+                    openForm.dataset.dirty = 'true';
+                    updateComparisonFeedback(openForm);
                 }
                 showToast('လစာစာရွက် ဓာတ်ပုံ သိမ်းဆည်းပြီးပါပြီ။');
                 renderPayslipPhotos(monthKey);
@@ -6770,6 +6797,10 @@
             event.preventDefault();
             const month = form.dataset.month;
             if (!validMonthKey(month) || !form.reportValidity()) return;
+            if (form.dataset.periodMismatch === 'true') {
+                showToast('စက်ရုံရှင်းတမ်းလနှင့် ရွေးထားသောလ မတူပါ။ အတည်မပြုနိုင်သေးပါ။', 'error');
+                return;
+            }
 
             const labels = payrollLabels();
             if (form.dataset.periodMismatch === 'true') {
