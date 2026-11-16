@@ -1,0 +1,22 @@
+{
+  "project_info": {
+    "project_number": "111111111111",
+    "project_id": "smart-salary-qa-offline"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:111111111111:android:1111111111111111111111",
+        "android_client_info": {
+          "package_name": "com.naylinhtike.salarytracker.qa"
+        }
+      },
+      "api_key": [
+        {
+          "current_key": "QA_OFFLINE_DISABLED_NO_AUTH"
+        }
+      ]
+    }
+  ],
+  "configuration_version": "1"
+}

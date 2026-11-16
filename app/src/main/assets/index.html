@@ -57,6 +57,31 @@
             }
         }
 
+        /* Android salary comparison: purpose-driven motion, accessible and battery-light. */
+        #payroll-comparison-form tr { transition: background-color 180ms ease; }
+        #payroll-comparison-form [data-compare-gap] { transition: color 180ms ease, opacity 180ms ease; }
+        #payroll-comparison-form [data-comparison-group] > summary { min-height: 44px; }
+        #payroll-comparison-form [data-comparison-group] > summary:active { opacity: .82; }
+        #payroll-comparison-form input:focus-visible,
+        #record-view input:focus-visible,
+        #record-view button:focus-visible {
+            outline: 2px solid #2563eb;
+            outline-offset: 2px;
+        }
+        @media (min-width: 640px) {
+            #payroll-comparison-form [data-comparison-group] { animation: androidSalaryReveal 200ms ease both; }
+        }
+        @keyframes androidSalaryReveal {
+            from { opacity: .85; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            #payroll-comparison-form *, #record-view * {
+                animation: none !important;
+                transition: none !important;
+                scroll-behavior: auto !important;
+            }
+        }
     </style>
     <title>နေ့စဉ် အလုပ်ချိန်နှင့် လစာမှတ်တမ်း</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24' fill='none' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10' stroke='%233b82f6'%3E%3C/circle%3E%3Cpolyline points='12 6 12 12' stroke='%233b82f6'%3E%3C/polyline%3E%3Ccircle cx='12' cy='12' r='3' stroke='%2310b981'%3E%3C/circle%3E%3C/svg%3E">
@@ -85,6 +110,20 @@
         .nav-button.active {
             background-color: #3b82f6; /* blue-500 */
             color: white;
+        }
+        .nav-button {
+            transition: background-color 180ms ease, color 180ms ease, box-shadow 180ms ease;
+            touch-action: manipulation;
+        }
+        .nav-button > svg, .nav-button > i {
+            transition: transform 180ms ease;
+        }
+        .nav-button.active > svg, .nav-button.active > i {
+            transform: scale(1.08);
+        }
+        .nav-button:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+        @media (prefers-reduced-motion: reduce) {
+            .nav-button, .nav-button > svg, .nav-button > i { transition: none !important; transform: none !important; }
         }
 
                 /* Hide APK download elements when running inside native mobile app */
@@ -521,9 +560,9 @@
                     fetch('release.json?t=' + Date.now())
                         .then(r => r.json())
                         .then(rel => {
-                            rel.currentVersionName = '1.2.4';
-                            rel.currentVersionCode = 7;
-                            rel.updateAvailable = (rel.versionCode > 7);
+                            rel.currentVersionName = '1.2.5';
+                            rel.currentVersionCode = 8;
+                            rel.updateAvailable = (rel.versionCode > 8);
                             if (window.onUpdateCheckResult) window.onUpdateCheckResult(true, rel);
                         })
                         .catch(e => {
@@ -539,8 +578,8 @@
                     document.body.removeChild(a);
                     if (window.onUpdateDownloadStatus) window.onUpdateDownloadStatus('downloading', 'Download started');
                 },
-                getAppVersionName: function() { return '1.2.4'; },
-                getAppVersionCode: function() { return 7; },
+                getAppVersionName: function() { return '1.2.5'; },
+                getAppVersionCode: function() { return 8; },
 
                 updateWidgetSummary: function(summaryText) {
                     console.log("Widget Summary updated:", summaryText);
@@ -1039,14 +1078,18 @@
                     </div>
                 </div>
 
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm tabular-nums">
+                <p class="text-xs text-slate-500 mb-2">အရင်မှတ်တမ်းပုံစံ • လစာ၊ ဖြတ်ငွေ၊ ကျန်ငွေ၊ မိဘသို့လွှဲငွေ</p>
+                <div class="overflow-x-auto" role="region" aria-label="လစဉ်လစာမှတ်တမ်း" tabindex="0">
+                    <table class="min-w-[850px] w-full text-sm tabular-nums">
                         <thead class="border-b border-slate-200 bg-slate-50 text-xs text-slate-700">
                             <tr>
                                 <th id="th-month" scope="col" class="p-2 text-left">လ</th>
                                 <th id="th-income" scope="col" class="p-2 text-right">စုစုပေါင်းရငွေ</th>
-                                <th id="th-deductions" scope="col" class="p-2 text-right">ဖြတ်ငွေ</th>
+                                <th id="th-deductions" scope="col" class="p-2 text-right">စုစုပေါင်းဖြတ်ငွေ</th>
                                 <th id="th-net" scope="col" class="p-2 text-right">အသားတင်</th>
+                                <th id="th-parents-won" scope="col" class="p-2 text-right">မိဘသို့ (ဝမ်)</th>
+                                <th id="th-parents-local" scope="col" class="p-2 text-right">မိဘသို့ (ကျပ်)</th>
+                                <th id="th-payslip" scope="col" class="p-2 text-center">ရှင်းတမ်း</th>
                             </tr>
                         </thead>
                         <tbody id="record-table-body"></tbody>
@@ -1557,7 +1600,7 @@
                 <div class="mt-6 pt-5 border-t border-slate-200">
                     <div class="flex flex-col items-center justify-center text-center space-y-2">
                         <div class="flex items-center gap-2">
-                            <span id="app-version-badge" class="px-2.5 py-0.5 bg-blue-100 text-blue-700 text-[10px] font-bold rounded-full uppercase tracking-wider">Version 1.2.4</span>
+                            <span id="app-version-badge" class="px-2.5 py-0.5 bg-blue-100 text-blue-700 text-[10px] font-bold rounded-full uppercase tracking-wider">Version 1.2.5</span>
                             <span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded-full uppercase tracking-wider">Official</span>
                         </div>
                         <h4 class="text-xs font-bold text-slate-800">Smart Salary Tracker</h4>
@@ -2080,7 +2123,7 @@
             </div>
             <div>
                 <h3 class="text-sm font-bold text-slate-900" id="update-modal-title">App ဗားရှင်းအသစ် ရရှိနေပါသည်</h3>
-                <span id="update-modal-version-badge" class="px-2 py-0.5 bg-blue-50 text-blue-700 text-[10px] font-bold rounded-full">v1.2.4</span>
+                <span id="update-modal-version-badge" class="px-2 py-0.5 bg-blue-50 text-blue-700 text-[10px] font-bold rounded-full">v1.2.5</span>
             </div>
         </div>
         <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1.5">
@@ -2339,6 +2382,30 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="korean-withholding-table.js"></script>
 <script src="korean-payroll.js"></script>
+<style id="android-salary-comparison-motion">
+    /* Android asset-only: compact and accessible payroll comparison */
+    .salary-compare-table tbody tr { transition: background-color 180ms ease, outline-color 180ms ease; }
+    .salary-compare-table tbody tr:focus-within { outline: 2px solid #2563eb; outline-offset: -2px; }
+    .salary-compare-table td[data-compare-gap] { font-variant-numeric: tabular-nums; }
+    .salary-compare-table td input { min-width: 0; }
+    @media (max-width: 560px) {
+        .salary-compare-table { display: block; width: 100%; }
+        .salary-compare-table thead { display: none; }
+        .salary-compare-table tbody { display: block; }
+        .salary-compare-table tbody tr { display: grid; grid-template-columns: 1fr 1fr; gap: 0.25rem 0.75rem; padding: 0.5rem; border-bottom: 1px solid #cbd5e1; }
+        .salary-compare-table tbody th { grid-column: 1 / -1; font-size: 0.85rem; }
+        .salary-compare-table tbody td { width: 100%; text-align: left; overflow-wrap: anywhere; }
+        .salary-compare-table tbody td:first-of-type::before { content: "App"; display: block; color: #475569; font-size: 0.65rem; }
+        .salary-compare-table tbody td:nth-of-type(2)::before { content: "စက်ရုံ"; display: block; color: #475569; font-size: 0.65rem; }
+        .salary-compare-table tbody td:nth-of-type(3) { grid-column: 1 / -1; }
+        .salary-compare-table tbody td:nth-of-type(3)::before { content: "ကွာဟချက် · App − စက်ရုံ: "; color: #475569; font-weight: 400; }
+        .salary-compare-table tbody input { width: 100%; font-size: 1rem; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .salary-compare-table tbody tr { transition: none !important; }
+    }
+</style>
+<script src="korean-payslip-ocr.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
 
@@ -5129,9 +5196,9 @@
         const PAYROLL_LABELS = {
             my: {
                 estimate: 'ခန့်မှန်း', actual: 'စက်ရုံ', difference: 'ကွာဟချက်', item: 'အချက်',
-                compare: 'စက်ရုံရှင်းတမ်းနှင့် တိုက်စစ်ရန်', compareTitle: 'ရှင်းတမ်းတိုက်စစ်', photo: 'စက်ရုံစာရွက် တွဲရန်', viewPhoto: 'စာရွက်ကြည့်ရန်',
+                compare: 'လစာရှင်းတမ်း နှိုင်းယှဉ်ခြင်း', compareTitle: 'လစာရှင်းတမ်း နှိုင်းယှဉ်ခြင်း', photo: 'စက်ရုံစာရွက် တွဲရန်', viewPhoto: 'စာရွက်ကြည့်ရန်',
                 zoomPhoto: 'ချဲ့ကြည့်ရန်', fitPhoto: 'အပြည့်ပြန်ကြည့်ရန်',
-                photoHint: 'စာရွက်ပေါ်က ဂဏန်းဖြည့်ပါ။ ကွာဟချက် = စက်ရုံ − App',
+                photoHint: 'စာရွက်ပေါ်က ဂဏန်းဖြည့်ပါ။ ကွာဟချက် = App − စက်ရုံ',
                 hours: 'အလုပ်ချိန်နှင့် ရက်အရေအတွက်', hourUnit: 'နာရီ', days: 'ရက်', otherDeductions: 'အခြားဖြတ်ငွေ',
                 changedLines: count => count + ' ချက်ကွာ', checkedLines: (count, total) => 'တိုက်စစ်ထားသော အသေးစိတ် ' + count + ' / ' + total,
                 allMatch: 'စုစုပေါင်းနှင့် အသေးစိတ်အားလုံး ကိုက်ညီသည်',
@@ -5155,7 +5222,7 @@
                 estimate: '예상', actual: '회사', difference: '차이', item: '항목',
                 compare: '회사 급여명세서와 비교', compareTitle: '급여명세서 비교', photo: '급여명세서 사진 첨부', viewPhoto: '사진 보기',
                 zoomPhoto: '확대', fitPhoto: '전체 보기',
-                photoHint: '명세서의 수치를 입력하세요. 차이는 회사 명세서에서 앱 계산값을 뺀 값입니다.',
+                photoHint: '명세서의 수치를 입력하세요. 차이 = 앱 계산액 − 회사 명세서 금액입니다.',
                 hours: '근무 시간과 일수', hourUnit: '시간', days: '일', otherDeductions: '기타 공제',
                 changedLines: count => count + '개 차이', checkedLines: (count, total) => '세부 항목 비교 ' + count + ' / ' + total,
                 allMatch: '합계와 모든 세부 항목이 일치합니다.',
@@ -5176,7 +5243,7 @@
                 estimate: 'Estimate', actual: 'Factory', difference: 'Difference', item: 'Item',
                 compare: 'Compare factory payslip', compareTitle: 'Payslip comparison', photo: 'Attach factory payslip', viewPhoto: 'View photo',
                 zoomPhoto: 'Zoom in', fitPhoto: 'Fit photo',
-                photoHint: 'Enter the numbers on the payslip. The difference is the factory value minus the app value.',
+                photoHint: 'Enter the numbers on the payslip. The difference is the app value minus the factory value.',
                 hours: 'Work hours and days', hourUnit: 'hours', days: 'days', otherDeductions: 'Other deductions',
                 changedLines: count => count + ' different', checkedLines: (count, total) => 'Details checked ' + count + ' / ' + total,
                 allMatch: 'Totals and all details match.',
@@ -5214,7 +5281,7 @@
         }
 
         function comparisonTable(rows, labels) {
-            return `<table class="w-full table-fixed text-xs tabular-nums">
+            return `<table class="salary-compare-table w-full table-fixed text-xs tabular-nums">
                 <colgroup><col class="w-[28%]"><col class="w-[21%]"><col class="w-[30%]"><col class="w-[21%]"></colgroup>
                 <thead class="border-b text-slate-600"><tr>
                     <th scope="col" class="p-1 text-left">${labels.item}</th>
@@ -5227,7 +5294,8 @@
                     const min = ['net', 'grossAdjustment'].includes(row.key) ? -10000000000 : 0;
                     const fieldName = row.total ? row.key : 'line_' + row.key;
                     return `<tr class="border-b border-slate-100">
-                        <th scope="row" class="p-1 text-left font-medium break-words">${row.label}</th>
+                        <th scope="row" class="p-1 text-left font-medium break-words">${row.label}
+                            <span data-row-state class="block text-[10px] font-semibold text-slate-600">UNVERIFIED</span></th>
                         <td class="p-1 text-right">${comparisonNumber(row.estimate, row.unit)}</td>
                         <td class="p-1"><input aria-label="${labels.actual} · ${row.label}" type="number" inputmode="${step < 1 || min < 0 ? 'decimal' : 'numeric'}"
                             name="${fieldName}" min="${min}" max="${row.unit === 'won' ? 10000000000 : 1000}" step="${step}"
@@ -5252,11 +5320,22 @@
                 const entered = input.validity.valid && Number.isFinite(input.valueAsNumber) ? input.valueAsNumber : null;
                 const unit = input.dataset.unit;
                 const scale = unit === 'hours' ? 100 : 1;
-                const difference = entered === null ? null : (Math.round(entered * scale) - Math.round(expected * scale)) / scale;
+                const difference = entered === null ? null : (Math.round(expected * scale) - Math.round(entered * scale)) / scale;
                 const cell = input.closest('tr').querySelector('[data-compare-gap]');
                 cell.textContent = (difference > 0 ? '+' : '') + comparisonNumber(difference, unit);
                 cell.classList.toggle('text-red-700', difference !== null && difference !== 0);
                 input.closest('tr').classList.toggle('bg-red-50', difference !== null && difference !== 0);
+                const verified = form.dataset.reviewed === 'true' && form.dataset.dirty !== 'true' &&
+                    form.dataset.periodMismatch !== 'true';
+                const label = input.closest('tr').querySelector('[data-row-state]');
+                if (label) {
+                    const state = difference === null ? 'MISSING' :
+                        !verified ? (difference !== 0 ? 'DIFFERENT · UNVERIFIED' : 'UNVERIFIED') :
+                        difference === 0 ? 'MATCHED' : 'DIFFERENT';
+                    label.textContent = state;
+                    label.classList.toggle('text-red-700', difference !== null && difference !== 0);
+                    label.classList.toggle('text-emerald-700', verified && difference === 0);
+                }
                 if (['gross', 'deductions', 'net'].includes(input.name)) {
                     actual[input.name] = entered;
                     estimate[input.name] = expected;
@@ -5273,14 +5352,69 @@
                 badge.hidden = !count;
             }
             const totals = KoreanPayroll.compare(estimate, actual);
+            const periodMismatch = form.dataset.periodMismatch === 'true';
+            const reviewed = form.dataset.reviewed === 'true' && form.dataset.dirty !== 'true' && reviewChecked;
+            const reviewChecked = form.elements.namedItem('confirmFactoryStatement')?.checked === true;
             const totalsDiffer = Object.values(totals.differences).some(gap => gap !== null && gap !== 0);
             const alert = form.querySelector('[data-comparison-status]');
-            alert.textContent = !totals.consistent ? labels.inconsistent :
+            alert.textContent = periodMismatch ? 'NOT COMPARABLE · လစာစာရွက်လနှင့် ရွေးထားသောလ မတူပါ။' :
+                !totals.consistent ? labels.inconsistent :
                 totalsDiffer || detailDifferences ? labels.mismatch :
-                totals.matches ? (comparedDetails === totalDetails ? labels.allMatch : labels.match) : labels.missing;
-            alert.classList.toggle('text-red-700', !totals.consistent || totalsDiffer || detailDifferences > 0);
-            alert.classList.toggle('text-green-700', totals.matches && !detailDifferences);
+                totals.matches ? (reviewed ? (comparedDetails === totalDetails ? labels.allMatch : labels.match) : '✓ ဂဏန်းတူသည် — မအတည်ပြုရသေး၊ စစ်ပြီး သိမ်းရန်') : labels.missing;
+            alert.classList.toggle('text-red-700', periodMismatch || !totals.consistent || totalsDiffer || detailDifferences > 0);
+            alert.classList.toggle('text-green-700', !periodMismatch && reviewed && totals.matches && !detailDifferences);
             form.querySelector('[data-checked-lines]').textContent = labels.checkedLines(comparedDetails, totalDetails);
+            const overview = form.querySelector('[data-comparison-overview]');
+            if (overview) overview.textContent = 'MATCHED ' + (comparedDetails - detailDifferences) +
+                ' · DIFFERENT ' + detailDifferences +
+                ' · MISSING ' + (totalDetails - comparedDetails) +
+                ' · UNVERIFIED ' + (reviewed ? '0' : String(comparedDetails)) +
+                ' · NOT COMPARABLE ' + (periodMismatch ? '1' : '0');
+        }
+
+        function exportVerifiedSalaryComparison(month) {
+            if (!validMonthKey(month)) return;
+            const data = calculateMonthSalaryData(month);
+            if (!data.extra.payroll?.reviewedAt || !data.comparison.complete) {
+                showToast('အတည်ပြုပြီးသော ရှင်းတမ်းကိုသာ CSV Export လုပ်နိုင်ပါသည်။', 'error');
+                return;
+            }
+            const groups = KoreanPayroll.payslipLines(data, data.actual.lines || {});
+            const rows = [
+                ['Group', 'Item', 'Unit', 'App', 'Factory', 'App_minus_Factory', 'Status']
+            ];
+            const push = (group, key, unit, app, factory) => {
+                const left = Number.isFinite(app) ? app : null;
+                const right = Number.isFinite(factory) ? factory : null;
+                const diff = left !== null && right !== null ? left - right : null;
+                rows.push([group, key, unit, left, right, diff,
+                    diff === null ? 'MISSING' : diff === 0 ? 'MATCHED' : 'DIFFERENT']);
+            };
+            ['gross', 'deductions', 'net'].forEach(key => push(
+                'total', key, 'KRW',
+                key === 'gross' ? data.grossPay : key === 'deductions' ? data.totalDeductions : data.netSalary,
+                data.actual[key]
+            ));
+            for (const [group, lines] of Object.entries(groups)) {
+                lines.forEach(row => push(group, row.key, row.unit, row.estimate, row.actual));
+            }
+            const cell = value => {
+                let text = value === null || value === undefined ? '' : String(value);
+                // Formula-injection defense; numeric negative differences are safe numeric literals.
+                if (/^[=+@]/.test(text) || (/^-/.test(text) && !/^-?\d+(\.\d+)?$/.test(text))) {
+                    text = "'" + text;
+                }
+                return '"' + text.replaceAll('"', '""') + '"';
+            };
+            const csv = '\uFEFF' + rows.map(row => row.map(cell).join(',')).join('\r\n');
+            const filename = 'SmartSalary-Comparison-' + month + '.csv';
+            if (window.AndroidBridge?.saveBackup) {
+                const saved = window.AndroidBridge.saveBackup(csv, filename, 'text/csv');
+                showToast(saved ? 'CSV နှိုင်းယှဉ်ချက် သိမ်းပြီးပါပြီ။' : 'CSV မသိမ်းနိုင်ပါ။',
+                    saved ? 'success' : 'error');
+            } else {
+                showToast('CSV Export ကို Android App တွင်သာ အသုံးပြုနိုင်ပါသည်။', 'error');
+            }
         }
 
         function openPayrollComparison(month, expanded) {
@@ -5323,15 +5457,33 @@
             photoButton.classList.add('hidden');
             photoButton.onclick = null;
             elements.payslipModalContent.innerHTML = `<div class="space-y-3">
-                <details id="payslip-photo-section" class="rounded-lg border border-slate-200 p-2">
-                    <summary class="cursor-pointer p-1 font-semibold">${labels.photo}</summary>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 items-start">
+                    <div class="rounded-lg border border-slate-200 p-2 min-w-0">
+                        <div class="font-semibold text-xs mb-1">စက်ရုံရှင်းတမ်း ဓာတ်ပုံ</div>
+                        <img id="ocr-photo-preview" alt="စက်ရုံလစာရှင်းတမ်း" class="w-full rounded border object-contain max-h-64 bg-slate-50" style="display:none">
+                        <p id="ocr-photo-empty" class="text-xs text-slate-500">ဓာတ်ပုံထည့်ပြီး OCR ဖတ်နိုင်ပါသည်</p>
+                        <p id="ocr-status" role="status" aria-live="polite" class="text-xs text-slate-600 mt-2">ဓာတ်ပုံက စက်ပေါ်မှာသာ OCR ဖတ်ပါမည်။</p>
+                    </div>
+                    <div class="rounded-lg border border-blue-100 bg-blue-50 p-2 min-w-0">
+                        <div class="font-semibold text-xs mb-2">App / စက်ရုံ နှိုင်းယှဉ်မှု</div>
+                        <div class="text-xs">App Gross: <strong>${formatKrw(data.grossPay)}</strong></div>
+                        <div class="text-xs">App Deductions: <strong>${formatKrw(data.totalDeductions)}</strong></div>
+                        <div class="text-xs">App Net: <strong>${formatKrw(data.netSalary)}</strong></div>
+                        <p class="text-xs mt-2 text-slate-600">အောက်ပါ စက်ရုံကော်လံကို OCR ဖြည့်ပြီး အတည်ပြုပါ။</p>
+                    </div>
+                </div>
+                <details id="payslip-photo-section" class="rounded-lg border border-slate-200 p-2" open>
+                    <summary class="cursor-pointer p-1 font-semibold">${labels.photo} · ဓာတ်ပုံရိုက်/ရွေး</summary>
                     <div id="payslip-photo-slots" data-month="${month}" class="grid grid-cols-2 gap-2 mt-2"></div>
                 </details>
                 <form id="payroll-comparison-form" class="payroll-form space-y-3" data-month="${month}">
                     <p class="text-xs text-slate-600">${labels.photoHint}</p>
                     ${comparisonTable(totals, labels)}
                     <p data-comparison-status role="status" class="text-sm font-semibold text-slate-800"></p>
+                    <label class="flex items-start gap-2 p-2 rounded-lg bg-amber-50 border border-amber-200 text-sm"><input type="checkbox" name="confirmFactoryStatement" class="mt-1 min-w-[20px] min-h-[20px]" ${payroll.reviewedAt ? 'checked' : ''}><span>ဓာတ်ပုံနှင့် OCR ဂဏန်းအားလုံးကို ကိုယ်တိုင်စစ်ပြီးမှ အတည်ပြုမည်။ OCR ဖတ်ရုံဖြင့် အတည်ပြုမဟုတ်ပါ။</span></label>
                     <p data-checked-lines class="text-xs text-slate-600"></p>
+                    <p data-comparison-overview aria-live="polite" class="text-xs font-semibold text-slate-700"></p>
+                    <button type="button" data-export-verified-comparison class="mt-2 px-3 py-2 min-h-[44px] border border-slate-300 rounded-lg text-xs font-semibold">အတည်ပြုထားသော နှိုင်းယှဉ်ချက် CSV ထုတ်ရန်</button>
                     ${groups}
                     <details data-comparison-group="settings" class="rounded-lg border border-slate-200 p-3" ${expanded?.includes('settings') ? 'open' : ''}>
                         <summary class="cursor-pointer font-semibold">${labels.rules}</summary>
@@ -5374,6 +5526,8 @@
             </div>`;
             elements.payslipModalContent.scrollTop = 0;
             const form = getElement('payroll-comparison-form');
+            form.dataset.reviewed = payroll.reviewedAt ? 'true' : 'false';
+            form.dataset.dirty = 'false';
             form.elements.namedItem('adjustmentNote').value = payroll.adjustmentNote || '';
             updateComparisonFeedback(form);
             openPayslipModal();
@@ -5387,38 +5541,66 @@
             const years = new Set([new Date().getFullYear(), ...sortedMonths.map(month => Number(month.slice(0, 4)))]);
             elements.yearSelect.replaceChildren(...[...years].sort((a, b) => b - a).map(year =>
                 new Option(year, year, false, year === state.viewingYear)));
-
             const visible = sortedMonths.filter(month => month.startsWith(String(state.viewingYear)));
             elements.recordTableFooter.hidden = visible.length === 0;
-            const labels = payrollLabels();
-            const totals = { gross: 0, deductions: 0, net: 0 };
+            const totals = { gross: 0, deductions: 0, net: 0, parentsWon: 0, parentsKyat: 0 };
+            const status = data => {
+                const actual = data.actual;
+                const comparison = data.comparison;
+                if (!comparison.complete) return '<span class="text-slate-500 text-xs">စက်ရုံဒေတာ မပြည့်သေး</span>';
+                if (!data.extra.payroll?.reviewedAt) return '<span class="text-amber-700 text-xs">စာရင်းကို မအတည်ပြုရသေး</span>';
+                const detailed = Object.values(KoreanPayroll.payslipLines(data, actual.lines || {})).flat();
+                if (detailed.some(item => item.difference !== null && item.difference !== 0))
+                    return '<span class="text-red-700 text-xs font-bold">⚠ လစာအသေးစိတ် ကွာနေသည်</span>';
+                if (comparison.matches && detailed.some(item => item.actual === null))
+                    return '<span class="text-amber-700 text-xs font-bold">စုစုပေါင်းတူ · အသေးစိတ်မပြည့်သေး</span>';
+                if (comparison.matches) return '<span class="text-emerald-700 text-xs font-bold">✓ စာရင်းအားလုံး ကိုက်ညီ</span>';
+                return '<span class="text-red-700 text-xs font-bold">⚠ ရငွေ / ဖြတ်ငွေ / ကျန်ငွေ ကွာနေသည်</span>';
+            };
             elements.recordTableBody.innerHTML = visible.map(month => {
                 const data = calculateMonthSalaryData(month);
+                const actual = data.actual;
+                const extra = data.extra;
+                const actualGross = Number.isSafeInteger(actual.gross) ? actual.gross : null;
+                const actualDeduct = Number.isSafeInteger(actual.deductions) ? actual.deductions : null;
+                const actualNet = Number.isSafeInteger(actual.net) ? actual.net :
+                    (actualGross !== null && actualDeduct !== null ? actualGross - actualDeduct : null);
+                const fmt = value => value === null ? '—' : formatKrw(value);
+                const delta = (value, estimate) => value === null ? '' :
+                    '<span class="block text-xs ' + (value === estimate ? 'text-emerald-700' : 'text-red-700') +
+                    '">ကွာ (App−စက်ရုံ): ' + (estimate > value ? '+' : '') + formatKrw(estimate - value) + '</span>';
                 totals.gross += data.grossPay;
                 totals.deductions += data.totalDeductions;
                 totals.net += data.netSalary;
-                const lines = KoreanPayroll.payslipLines(data, data.actual.lines || {});
-                const hasDifference = Object.values(data.comparison.differences).some(gap => gap !== null && gap !== 0) ||
-                    Object.values(lines).some(group => group.some(line => line.difference !== null && line.difference !== 0));
-                return `<tr class="border-t border-slate-100">
-                    <th scope="row" class="p-2 text-left">${month}</th>
-                    <td class="p-2 text-right">${formatKrw(data.grossPay)}</td>
-                    <td class="p-2 text-right">${formatKrw(data.totalDeductions)}</td>
-                    <td class="p-2 text-right font-bold">${formatKrw(data.netSalary)}</td>
-                </tr>
-                <tr><td colspan="4" class="px-2 pb-2">
-                    <div class="flex flex-wrap items-center gap-x-3">
-                        <button type="button" data-payslip-month="${month}" class="min-h-[44px] text-sm font-semibold text-blue-700">${t('payslip_btn')}</button>
-                        <button type="button" data-payroll-month="${month}" class="min-h-[44px] text-sm font-semibold text-blue-700">${labels.compare}</button>
-                        ${hasDifference ? `<span class="text-xs font-bold text-red-700">${labels.mismatch}</span>` : ''}
-                    </div>
-                </td></tr>`;
-            }).join('') || `<tr><td colspan="4" class="p-3 text-slate-600">${t('empty_records')}</td></tr>`;
-            elements.recordTableFooter.innerHTML = `<th scope="row" class="p-2 text-left">${t('grand_total')}</th>
-                <td class="p-2 text-right">${formatKrw(totals.gross)}</td><td class="p-2 text-right">${formatKrw(totals.deductions)}</td>
-                <td class="p-2 text-right">${formatKrw(totals.net)}</td>`;
+                totals.parentsWon += Number(extra.parentsWon) || 0;
+                totals.parentsKyat += Number(extra.parentsKyat) || 0;
+                return '<tr class="border-b align-top">' +
+                    '<td class="p-2 font-bold whitespace-nowrap">' + month + '</td>' +
+                    '<td class="p-2 text-right"><div class="text-xs text-slate-500">App ခန့်မှန်း</div><strong>' + fmt(data.grossPay) + '</strong>' +
+                    '<label class="text-xs text-blue-700 block">စက်ရုံရငွေ<input aria-label="စက်ရုံရငွေ ' + month +
+                    '" data-record-actual="gross" data-month="' + month + '" type="number" min="0" step="1" class="block w-28 ml-auto border rounded p-1 text-right" value="' +
+                    (actualGross === null ? '' : actualGross) + '"></label>' +
+                    delta(actualGross, data.grossPay) + '</td>' +
+                    '<td class="p-2 text-right"><div class="text-xs text-slate-500">App ခန့်မှန်း</div><strong>' + fmt(data.totalDeductions) + '</strong>' +
+                    '<label class="text-xs text-red-700 block">စက်ရုံဖြတ်ငွေ<input aria-label="စက်ရုံဖြတ်ငွေ ' + month +
+                    '" data-record-actual="deductions" data-month="' + month + '" type="number" min="0" step="1" class="block w-28 ml-auto border rounded p-1 text-right" value="' +
+                    (actualDeduct === null ? '' : actualDeduct) + '"></label>' +
+                    delta(actualDeduct, data.totalDeductions) + '</td>' +
+                    '<td class="p-2 text-right"><strong>' + fmt(data.netSalary) + '</strong><div class="text-xs text-slate-500">စက်ရုံ ' +
+                    fmt(actualNet) + '</div>' + delta(actualNet, data.netSalary) +
+                    '<div class="mt-1">' + status(data) + '</div></td>' +
+                    '<td class="p-2 text-right text-emerald-700">' + fmt(Number(extra.parentsWon) || 0) + '</td>' +
+                    '<td class="p-2 text-right text-blue-700">' + fmt(Number(extra.parentsKyat) || 0) + '</td>' +
+                    '<td class="p-2 text-center"><button type="button" data-payslip-month="' + month +
+                    '" class="text-blue-700 font-bold rounded-lg p-2 border border-blue-200 min-h-[44px]">ရှင်းတမ်း / ဓာတ်ပုံ</button></td></tr>';
+            }).join('') || '<tr><td colspan="7" class="p-4 text-center text-slate-500">မှတ်တမ်းမရှိသေးပါ</td></tr>';
+            elements.recordTableFooter.innerHTML = '<th class="p-2 text-left">စုစုပေါင်း</th><td class="p-2 text-right">' +
+                formatKrw(totals.gross) + '</td><td class="p-2 text-right">' +
+                formatKrw(totals.deductions) + '</td><td class="p-2 text-right">' +
+                formatKrw(totals.net) + '</td><td class="p-2 text-right">' +
+                formatKrw(totals.parentsWon) + '</td><td class="p-2 text-right">' +
+                formatKrw(totals.parentsKyat) + '</td><td></td>';
         };
-
 
         function renderSettings() {
             const s = state.settings;
@@ -5560,6 +5742,12 @@
             const displayablePhotos = photos.filter(photo =>
                 typeof photo?.dataUrl === 'string' && /^data:image\/(?:jpeg|png|webp|gif);base64,/i.test(photo.dataUrl));
             const primaryPhoto = displayablePhotos.find(photo => photo.slot === 1) || displayablePhotos[0];
+            const preview = getElement('ocr-photo-preview');
+            if (preview && container.dataset.month === currentPayslipMonth && primaryPhoto) {
+                preview.src = primaryPhoto.dataUrl;
+                preview.style.display = 'block';
+                getElement('ocr-photo-empty')?.classList.add('hidden');
+            }
             photoButton.classList.toggle('hidden', !primaryPhoto);
             photoButton.onclick = primaryPhoto ? () => openPhotoLightbox(primaryPhoto.dataUrl) : null;
 
@@ -5602,7 +5790,7 @@
                                 ဖျက်မည်
                             </button>
                         </div>
-                        <input type="file" id="photo-upload-input-${slotNum}" accept="image/*" class="sr-only" onchange="handlePhotoFileSelected('${monthKey}', ${slotNum}, this)">
+                        <input type="file" id="photo-upload-input-${slotNum}" accept="image/*,application/pdf" class="sr-only" onchange="handlePhotoFileSelected('${monthKey}', ${slotNum}, this)">
                     `;
                     card.querySelector('img').src = photo.dataUrl;
                     card.querySelector('[data-open-photo]').addEventListener('click', () => openPhotoLightbox(photo.dataUrl));
@@ -5615,7 +5803,7 @@
                             <span class="text-xs font-bold text-slate-800">${slotLabel}</span>
                             <span class="text-[10px] text-blue-600 font-bold mt-0.5">+ ဓာတ်ပုံတွဲရန်</span>
                         </button>
-                        <input type="file" id="photo-upload-input-${slotNum}" accept="image/*" class="sr-only" onchange="handlePhotoFileSelected('${monthKey}', ${slotNum}, this)">
+                        <input type="file" id="photo-upload-input-${slotNum}" accept="image/*,application/pdf" class="sr-only" onchange="handlePhotoFileSelected('${monthKey}', ${slotNum}, this)">
                     `;
                 }
                 container.appendChild(card);
@@ -5635,22 +5823,176 @@
             if (!input || !input.files || !input.files[0]) return;
             const file = input.files[0];
             try {
+                if (file.size > 12000000) throw new Error('ဖိုင်အရွယ်အစား 12 MB ထက်မကြီးရပါ။');
+                if (file.type === 'application/pdf' || /\.pdf$/i.test(file.name)) {
+                    if (!window.AndroidBridge?.renderPayslipPdf) throw new Error('PDF ကို Android App အတွင်းမှာသာ ဖတ်နိုင်ပါသည်။');
+                    const reader = new FileReader();
+                    reader.onload = event => {
+                        const status = getElement('ocr-status');
+                        if (status) status.textContent = 'PDF စာမျက်နှာ ၁ ကို ဖုန်းထဲတွင် ပြောင်းနေပါသည်…';
+                        window.AndroidBridge.renderPayslipPdf(event.target.result, monthKey, slot);
+                    };
+                    reader.onerror = () => showToast('PDF ဖိုင်မဖတ်နိုင်ပါ။', 'error');
+                    reader.readAsDataURL(file);
+                    input.value = '';
+                    return;
+                }
+                if (!file.type.startsWith('image/')) throw new Error('JPG၊ PNG၊ HEIC သို့မဟုတ် PDF ဖိုင်ကိုသာ အသုံးပြုပါ။');
                 showToast('ဓာတ်ပုံကို ဖိသိပ်နေပါသည်...');
                 const compressed = await window.PayslipPhotoManager.compressImage(file);
+                const previousPhotos = await window.PayslipPhotoManager.getPhotos(monthKey);
+                if (previousPhotos.some(photo => photo.slot === slot && photo.dataUrl === compressed.dataUrl)) {
+                    showToast('ဤရှင်းတမ်းပုံကို သိမ်းထားပြီးသားဖြစ်ပါတယ်။', 'info');
+                    input.value = '';
+                    return;
+                }
                 const saved = await window.PayslipPhotoManager.savePhoto(monthKey, slot, compressed.dataUrl, file.name);
                 if (!saved) {
                     showToast(payrollLabels().saveError, 'error');
                     input.value = '';
                     return;
                 }
+                // A replaced photo invalidates the previously reviewed statement.
+                const existingExtra = state.monthlyExtras.find(extra => extra.month === monthKey);
+                if (existingExtra?.payroll) {
+                    const previous = state.monthlyExtras;
+                    const nextPayroll = { ...existingExtra.payroll, reviewedAt: null };
+                    delete nextPayroll.ocrEvidence;
+                    state.monthlyExtras = previous.map(extra => extra.month === monthKey ?
+                        { ...extra, payroll: nextPayroll } : extra);
+                    try {
+                        if (saveState(false) === false) state.monthlyExtras = previous;
+                    } catch (error) {
+                        state.monthlyExtras = previous;
+                        showToast('အသစ်ဓာတ်ပုံ သိမ်းပြီးသော်လည်း အတည်ပြုချက် Reset မသိမ်းနိုင်ပါ။', 'error');
+                    }
+                }
+                window.pendingPayslipOcr = null;
+                const openForm = getElement('payroll-comparison-form');
+                if (openForm?.dataset.month === monthKey) {
+                    openForm.dataset.reviewed = 'false';
+                    openForm.dataset.dirty = 'true';
+                    updateComparisonFeedback(openForm);
+                }
                 showToast('လစာစာရွက် ဓာတ်ပုံ သိမ်းဆည်းပြီးပါပြီ။');
                 renderPayslipPhotos(monthKey);
+                const preview = getElement('ocr-photo-preview');
+                if (preview && currentPayslipMonth === monthKey) {
+                    preview.src = compressed.dataUrl;
+                    preview.style.display = 'block';
+                    getElement('ocr-photo-empty')?.classList.add('hidden');
+                }
+                if (window.AndroidBridge?.recognizePayslip) {
+                    const status = getElement('ocr-status');
+                    if (status) status.textContent = 'ကိုရီးယားစာရွက်ကို ဖုန်းထဲတွင် ဖတ်နေပါသည်…';
+                    window.AndroidBridge.recognizePayslip(compressed.dataUrl, monthKey);
+                } else {
+                    const status = getElement('ocr-status');
+                    if (status) status.textContent = 'ဤဗားရှင်းတွင် OCR မရပါ။ စက်ရုံကော်လံကို ကိုယ်တိုင်ဖြည့်နိုင်ပါသည်။';
+                }
                 renderRecordTable();
             } catch (err) {
                 showToast(`ဓာတ်ပုံသိမ်းဆည်းရာတွင် အမှားတက်ခဲ့သည်: ${err.message}`, 'error');
             }
         }
         window.handlePhotoFileSelected = handlePhotoFileSelected;
+        window.onPayslipPdfRendered = async function(month, slot, response) {
+            if (!validMonthKey(month) || ![1, 2].includes(slot) || month !== currentPayslipMonth) return;
+            if (!response?.ok) {
+                showToast('PDF မဖတ်နိုင်ပါ — ' + String(response?.error || 'Unknown error'), 'error');
+                return;
+            }
+            const dataUrl = response.dataUrl;
+            if (typeof dataUrl !== 'string' || !/^data:image\/jpeg;base64,/i.test(dataUrl)) return;
+            const existingPdfPhotos = await window.PayslipPhotoManager.getPhotos(month);
+            if (existingPdfPhotos.some(photo => photo.slot === slot && photo.dataUrl === dataUrl)) {
+                showToast('ဤ PDF စာမျက်နှာကို သိမ်းထားပြီးသားဖြစ်ပါတယ်။', 'info');
+                return;
+            }
+            const saved = await window.PayslipPhotoManager.savePhoto(month, slot, dataUrl, 'payslip-page1.jpg');
+            if (!saved) {
+                showToast('PDF မှ ထုတ်ထားသော ဓာတ်ပုံကို မသိမ်းနိုင်ပါ။', 'error');
+                return;
+            }
+            // Replacing a payslip document invalidates its previous verification.
+            const extras = state.monthlyExtras;
+            state.monthlyExtras = extras.map(extra => {
+                if (extra.month !== month || !extra.payroll) return extra;
+                const payroll = { ...extra.payroll, reviewedAt: null };
+                delete payroll.ocrEvidence;
+                return { ...extra, payroll };
+            });
+            window.pendingPayslipOcr = null;
+            if (saveState(false) === false) state.monthlyExtras = extras;
+            const form = getElement('payroll-comparison-form');
+            if (form?.dataset.month === month) {
+                form.dataset.reviewed = 'false';
+                form.dataset.dirty = 'true';
+                updateComparisonFeedback(form);
+            }
+            renderPayslipPhotos(month);
+            const preview = getElement('ocr-photo-preview');
+            if (preview) {
+                preview.src = dataUrl;
+                preview.style.display = 'block';
+                getElement('ocr-photo-empty')?.classList.add('hidden');
+            }
+            const status = getElement('ocr-status');
+            if (status) status.textContent = response.firstPageOnly ?
+                'PDF မှ ပထမစာမျက်နှာကိုသာ ဖတ်နေပါသည်။ ကျန်စာမျက်နှာများကို သီးခြားစစ်ပါ။' :
+                'PDF ရှင်းတမ်းကို OCR ဖတ်နေပါသည်…';
+            window.AndroidBridge?.recognizePayslip?.(dataUrl, month);
+            renderRecordTable();
+        };
+
+        window.onPayslipOcrResult = function(month, envelope) {
+            const status = getElement('ocr-status');
+            if (month !== currentPayslipMonth) return;
+            const form = getElement('payroll-comparison-form');
+            if (!form || form.dataset.month !== month) return;
+            if (!envelope || envelope.ok !== true) {
+                if (status) status.textContent = 'OCR မအောင်မြင်ပါ — ' +
+                    String(envelope?.error || 'Unknown error') + '။ ဂဏန်းကို ကိုယ်တိုင်ပြင်ဖြည့်နိုင်ပါသည်။';
+                return;
+            }
+            try {
+                const parsed = KoreanPayslipOCR.parse(envelope.result);
+                if (parsed.period && parsed.period !== month) {
+                    form.dataset.periodMismatch = 'true';
+                    if (status) status.textContent = 'NOT COMPARABLE · စာရွက်လ ' + parsed.period +
+                        ' နှင့် ရွေးထားသည့်လ ' + month + ' မတူပါ။ မှန်ကန်သည့်လကို ရွေးပြီး ပြန်ဖတ်ပါ။';
+                    updateComparisonFeedback(form);
+                    return; // Never mix payroll from different periods.
+                }
+                form.dataset.periodMismatch = 'false';
+                form.dataset.ocrPending = 'true';
+                form.dataset.dirty = 'true';
+                form.dataset.reviewed = 'false';
+                const confirmation = form.elements.namedItem('confirmFactoryStatement');
+                if (confirmation) confirmation.checked = false;
+                window.pendingPayslipOcr = { month, values: parsed.values, warnings: parsed.warnings, recognized: parsed.recognized, period: parsed.period, paymentDate: parsed.paymentDate };
+                let populated = 0;
+                const skipped = [];
+                for (const [key, value] of Object.entries(parsed.values)) {
+                    const name = ['gross','deductions','net'].includes(key) ? key : 'line_' + key;
+                    const field = form.elements.namedItem(name);
+                    if (!field || field.value !== '') {
+                        skipped.push(key);
+                        continue;
+                    }
+                    field.value = String(value);
+                    populated++;
+                }
+                updateComparisonFeedback(form);
+                const info = parsed.warnings.join(' ');
+                if (status) status.textContent = 'OCR ဖတ်ပြီး: ' + parsed.recognized + ' ချက် · ဖြည့်ပြီး ' + populated +
+                    ' ချက်။ မူလစာရွက်နဲ့ စစ်ဆေးပြီးမှ သိမ်းပါ။ ' + info +
+                    (skipped.length ? ' ရှိပြီးသားတန်ဖိုးများကို မအစားထိုးထားပါ။' : '');
+            } catch (error) {
+                if (status) status.textContent = 'စာရွက် OCR အချက်အလက်မဖတ်နိုင်ပါ။ ကိုယ်တိုင်ဖြည့်နိုင်ပါသည်။';
+            }
+        };
+
 
         function confirmDeletePhoto(monthKey, slot) {
             currentDeletingPhotoInfo = { monthKey, slot };
@@ -5880,7 +6222,7 @@
                 `;
             getElement('payslip-actions').classList.remove('hidden');
             getElement('payroll-compare-actions').classList.add('hidden');
-            getElement('payslip-compare-btn').textContent = payrollLabels().compare;
+            getElement('payslip-compare-btn').textContent = 'ဓာတ်ပုံထည့်၍ စက်ရုံရှင်းတမ်းကို ယှဉ်ကြည့်ရန်';
             elements.payslipModalContent.scrollTop = 0;
             openPayslipModal();
         };
@@ -6597,8 +6939,26 @@
         }
         document.addEventListener('click', () => getElement('day-context-menu').classList.add('hidden'));
 
+        elements.payslipModalContent.addEventListener('click', event => {
+            if (event.target.closest('[data-export-verified-comparison]')) {
+                const month = getElement('payroll-comparison-form')?.dataset.month;
+                if (month) exportVerifiedSalaryComparison(month);
+            }
+        });
         elements.payslipModalContent.addEventListener('input', event => {
-            if (event.target.matches('input[data-compare-estimate]')) updateComparisonFeedback(event.target.form);
+            if (event.target.matches('input[data-compare-estimate]')) {
+                event.target.form.dataset.dirty = 'true';
+                const confirmation = event.target.form.elements.namedItem('confirmFactoryStatement');
+                if (confirmation) confirmation.checked = false;
+                updateComparisonFeedback(event.target.form);
+            }
+        });
+        elements.payslipModalContent.addEventListener('change', event => {
+            if (event.target.matches('input[name="confirmFactoryStatement"]')) {
+                event.target.form.dataset.dirty = event.target.checked ? 'false' : 'true';
+                event.target.form.dataset.reviewed = event.target.checked ? 'true' : 'false';
+                updateComparisonFeedback(event.target.form);
+            }
         });
         elements.payslipModalContent.addEventListener('invalid', event => {
             const section = event.target.closest('details');
@@ -6613,8 +6973,16 @@
             event.preventDefault();
             const month = form.dataset.month;
             if (!validMonthKey(month) || !form.reportValidity()) return;
+            if (form.dataset.periodMismatch === 'true') {
+                showToast('စက်ရုံရှင်းတမ်းလနှင့် ရွေးထားသောလ မတူပါ။ အတည်မပြုနိုင်သေးပါ။', 'error');
+                return;
+            }
 
             const labels = payrollLabels();
+            if (form.dataset.periodMismatch === 'true') {
+                showToast('NOT COMPARABLE — စက်ရုံရှင်းတမ်းလနှင့် App ရွေးထားသည့်လ မတူပါ။', 'error');
+                return;
+            }
             const input = name => form.elements.namedItem(name);
             const number = name => input(name).value === '' ? null : input(name).valueAsNumber;
             const previous = state.monthlyExtras;
@@ -6625,6 +6993,26 @@
                     .filter(field => field.value !== '')
                     .map(field => [field.name.slice('line_'.length), field.valueAsNumber]))
             } };
+            const reviewedComparison = KoreanPayroll.compare(
+                { gross: calculateMonthSalaryData(month).grossPay,
+                  deductions: calculateMonthSalaryData(month).totalDeductions,
+                  net: calculateMonthSalaryData(month).netSalary },
+                payroll.actual);
+            // Only a deliberate Save verifies reviewed inputs. Unread OCR text is
+            // intentionally not stored; candidate numeric values remain separate.
+            payroll.reviewedAt = reviewedComparison.complete && reviewedComparison.consistent &&
+                form.elements.namedItem('confirmFactoryStatement')?.checked === true &&
+                form.dataset.periodMismatch !== 'true' ? new Date().toISOString() : null;
+            if (window.pendingPayslipOcr?.month === month) {
+                payroll.ocrEvidence = {
+                    values: { ...window.pendingPayslipOcr.values },
+                    warnings: [...window.pendingPayslipOcr.warnings],
+                    recognized: window.pendingPayslipOcr.recognized,
+                    period: window.pendingPayslipOcr.period,
+                    paymentDate: window.pendingPayslipOcr.paymentDate,
+                    reviewedAt: payroll.reviewedAt
+                };
+            }
             const locked = KoreanPayroll.validSnapshot(payroll.snapshot);
             if (!locked) {
                 const familySize = number('familySize') ?? Math.max(1, (Math.round(state.settings.dependents) || 0) + 1);
@@ -6666,12 +7054,35 @@
             elements.payslipModalContent.scrollTop = scroll;
             renderRecordTable();
             syncWidgetData();
+            if (window.pendingPayslipOcr?.month === month) delete window.pendingPayslipOcr;
             showToast(labels.saved, 'success');
+        });
+
+        elements.recordTableBody.addEventListener('change', event => {
+            const input = event.target.closest('input[data-record-actual]');
+            if (!input || !validMonthKey(input.dataset.month)) return;
+            const month = input.dataset.month;
+            const field = input.dataset.recordActual;
+            if (!['gross', 'deductions'].includes(field)) return;
+            const raw = input.value === '' ? null : input.valueAsNumber;
+            if (raw !== null && (!Number.isSafeInteger(raw) || raw < 0)) {
+                showToast('0 နှင့်အထက် ဝမ်ပြည့်ဂဏန်းထည့်ပါ။', 'error');
+                renderRecordTable();
+                return;
+            }
+            const prior = state.monthlyExtras;
+            const existing = prior.find(item => item.month === month) || { month };
+            const previousActual = getPayrollActual(existing);
+            const actual = { ...previousActual, [field]: raw, net: null };
+            const payroll = { ...(existing.payroll || {}), actual, reviewedAt: null };
+            state.monthlyExtras = [...prior.filter(item => item.month !== month), { ...existing, month, payroll }];
+            if (saveState() === false) { state.monthlyExtras = prior; return; }
+            renderRecordTable();
         });
 
         elements.recordTableBody.addEventListener('click', event => {
             const button = event.target.closest('[data-payslip-month]');
-            if (button) calculateAndShowPayslip(button.dataset.payslipMonth);
+            if (button) openPayrollComparison(button.dataset.payslipMonth);
             const comparisonButton = event.target.closest('[data-payroll-month]');
             if (comparisonButton) openPayrollComparison(comparisonButton.dataset.payrollMonth);
         });
@@ -6970,7 +7381,7 @@
                         return r.json();
                     })
                     .then(release => {
-                        const curVerName = (window.AndroidBridge && typeof window.AndroidBridge.getAppVersionName === 'function') ? window.AndroidBridge.getAppVersionName() : '1.2.4';
+                        const curVerName = (window.AndroidBridge && typeof window.AndroidBridge.getAppVersionName === 'function') ? window.AndroidBridge.getAppVersionName() : '1.2.5';
                         const curVerCode = (window.AndroidBridge && typeof window.AndroidBridge.getAppVersionCode === 'function') ? window.AndroidBridge.getAppVersionCode() : 7;
                         release.updateAvailable = (release.versionCode > curVerCode);
                         release.currentVersionName = curVerName;
@@ -7789,11 +8200,44 @@
                 try {
                     const content = event.target.result;
                     const normalizedState = robustParseAndNormalize(content);
-                    if (confirm('ဒေတာများကို အစားထိုး တင်သွင်းမှာ သေချာပါသလား?')) {
-                        localStorage.setItem(getStateStorageKey(), JSON.stringify(normalizedState));
-                        loadState(); 
-                        render(); 
-                        showToast('ဒေတာများ တင်သွင်းပြီးပါပြီ။', 'success');
+                    const entries = normalizedState.timeData.length;
+                    const extras = normalizedState.monthlyExtras.length;
+                    if (entries === 0) throw new Error('Backup တွင် အလုပ်ချိန်မှတ်တမ်း မပါရှိပါ။');
+                    const photoCount = Array.isArray(normalizedState._attached_photos) ?
+                        normalizedState._attached_photos.length : 0;
+                    const confirmed = confirm('ဒေတာမှတ်တမ်း ' + entries + ' ခု၊ လစာမှတ်တမ်း ' + extras +
+                        ' လ၊ ဓာတ်ပုံ ' + photoCount + ' ပုံ ပါရှိသည်။ လက်ရှိဒေတာကို ဘေးကင်းသော Restore Copy သိမ်းပြီးမှ အစားထိုးမည်။ ဆက်လုပ်မလား?');
+                    if (confirmed) {
+                        // Uses existing Android restore path with a pre-restore copy and rollback on error.
+                        const restored = applyRestoredBackup(content);
+                        // Photo import is additive only: never overwrite a photo already on-device.
+                        // A failed photo import does not erase the restored salary records.
+                        if (photoCount && window.PayslipPhotoManager) {
+                            (async () => {
+                                let added = 0, skipped = 0;
+                                for (const photo of normalizedState._attached_photos) {
+                                    const month = photo?.month;
+                                    const slot = Number(photo?.slot);
+                                    const image = photo?.dataUrl;
+                                    if (!validMonthKey(month) || ![1, 2].includes(slot) ||
+                                        typeof image !== 'string' || image.length > 18000000 ||
+                                        !/^data:image\/(jpeg|png|webp);base64,/i.test(image)) {
+                                        skipped++;
+                                        continue;
+                                    }
+                                    const existing = await window.PayslipPhotoManager.getPhotos(month);
+                                    if (existing.some(item => item.slot === slot)) {
+                                        skipped++;
+                                        continue;
+                                    }
+                                    if (await window.PayslipPhotoManager.savePhoto(month, slot, image, String(photo.fileName || 'payslip.jpg').slice(0, 128))) added++;
+                                    else skipped++;
+                                }
+                                showToast('Restore ' + restored + ' Entries; ဓာတ်ပုံ ' + added + ' ပုံ ထည့်၊ ' + skipped + ' ပုံကျော်', 'success');
+                            })().catch(() => showToast('လစာဒေတာ Restore ပြီးပါပြီ။ ဓာတ်ပုံအချို့ မရနိုင်ပါ။', 'error'));
+                        } else {
+                            showToast(restored + ' Entries ကို Restore ပြီးပါပြီ။', 'success');
+                        }
                     }
                 } catch (err) { 
                     console.error("Import Error:", err); 

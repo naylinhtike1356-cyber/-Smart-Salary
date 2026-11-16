@@ -82,7 +82,7 @@ test('reconciliation requires all three payslip values, accepts zero and shows a
     const estimate = { gross: 3823410, deductions: 332825, net: 3490585 };
     const actual = { gross: 3823410, deductions: 379040, net: 3444370 };
     assert.deepEqual(payroll.compare(estimate, actual), {
-        differences: { gross: 0, deductions: 46215, net: -46215 }, complete: true, consistent: true, matches: false
+        differences: { gross: 0, deductions: -46215, net: 46215 }, complete: true, consistent: true, matches: false
     });
     assert.equal(payroll.compare(actual, { ...actual, net: null }).matches, false);
     assert.equal(payroll.compare(actual, { ...actual, net: actual.gross }).consistent, false);
@@ -105,16 +105,16 @@ test('factory comparison reports differences by hours, earnings and deductions e
     const groups = payroll.payslipLines(month, entered);
     const byKey = Object.fromEntries(Object.values(groups).flat().map(row => [row.key, row]));
     assert.equal(byKey.baseMs.difference, 0);
-    assert.equal(byKey.overtimeMs.difference, -0.25);
+    assert.equal(byKey.overtimeMs.difference, 0.25);
     assert.equal(byKey.nightMs.difference, 0);
     assert.equal(byKey.weeklyHolidaysCount.actual, null);
     assert.equal(byKey.weeklyHolidaysCount.unit, 'days');
-    assert.equal(byKey.grossAdjustment.difference, 3000);
-    assert.equal(byKey.regularotPay.difference, -1220);
+    assert.equal(byKey.grossAdjustment.difference, -3000);
+    assert.equal(byKey.regularotPay.difference, 1220);
     assert.equal(byKey.bonusPay.difference, null);
     assert.equal(byKey.incomeTax.difference, 0);
-    assert.equal(byKey.otherDeductions.difference, 123);
-    assert.equal(byKey.healthInsurance.difference, -800);
+    assert.equal(byKey.otherDeductions.difference, -123);
+    assert.equal(byKey.healthInsurance.difference, 800);
     assert.deepEqual(payroll.payslipLines(month, JSON.parse(JSON.stringify(entered))), groups);
 });
 

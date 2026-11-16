@@ -1,6 +1,11 @@
 package com.naylinhtike.salarytracker
 
 import android.graphics.Color
+import android.graphics.Bitmap
+import android.graphics.pdf.PdfRenderer
+import android.os.ParcelFileDescriptor
+import android.util.Base64
+import java.io.ByteArrayOutputStream
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.ktx.analytics
 import com.google.firebase.ktx.Firebase
@@ -25,6 +30,7 @@ import android.webkit.WebViewClient
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import java.io.File
 import java.io.OutputStream
 import androidx.lifecycle.lifecycleScope
@@ -46,6 +52,7 @@ class MainActivity : AppCompatActivity() {
 
     private var webView: WebView? = null
     private var uploadMessage: ValueCallback<Array<Uri>>? = null
+    private var pendingCameraPhotoUri: Uri? = null
     private var pendingQuickAddToday = false
     private var pendingCopyYesterday = false
     private var pageLoaded = false
@@ -60,8 +67,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var firebaseAnalytics: FirebaseAnalytics
 
     companion object {
-        private const val RELEASE_METADATA_URL = "https://webdist-puce.vercel.app/release.json"
-        private const val RELEASE_APK_URL = "https://webdist-puce.vercel.app/SmartSalaryTracker.apk"
+        // Android releases are independent of the WebApp / Vercel deployment.
+        private const val RELEASE_METADATA_URL = "https://api.github.com/repos/naylinhtike1356-cyber/-Smart-Salary/releases/latest"
+        private const val RELEASE_APK_ORIGIN = "https://github.com/naylinhtike1356-cyber/-Smart-Salary/releases/download/"
         private const val UPDATE_PREFS = "app_update_prefs"
         private const val UPDATE_APK_FILE = "SmartSalaryTracker-update.apk"
     }
@@ -117,9 +125,13 @@ class MainActivity : AppCompatActivity() {
 
     private val filePickerLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (uploadMessage == null) return@registerForActivityResult
-        val results = WebChromeClient.FileChooserParams.parseResult(result.resultCode, result.data)
+        val picked = WebChromeClient.FileChooserParams.parseResult(result.resultCode, result.data)
+        val results = if (result.resultCode == RESULT_OK) {
+            picked ?: pendingCameraPhotoUri?.let { arrayOf(it) }
+        } else null
         uploadMessage?.onReceiveValue(results)
         uploadMessage = null
+        pendingCameraPhotoUri = null
     }
 
     private fun logCustomEvent(eventName: String, params: Bundle? = null) {
@@ -149,14 +161,32 @@ class MainActivity : AppCompatActivity() {
                         if (connection.responseCode != HttpURLConnection.HTTP_OK) {
                             error("Update server returned ${connection.responseCode}")
                         }
-                        val release = connection.inputStream.bufferedReader().use { JSONObject(it.readText()) }
-                        val versionCode = release.getInt("versionCode")
-                        val apkUrl = release.getString("apkUrl")
-                        val sha256 = release.getString("sha256").lowercase()
-                        require(apkUrl == RELEASE_APK_URL) {
-                            "Untrusted APK download URL"
-                        }
+                        val github = connection.inputStream.bufferedReader().use { JSONObject(it.readText()) }
+                        val tag = github.getString("tag_name")
+                        require(Regex("^v[0-9]+\\.[0-9]+\\.[0-9]+$").matches(tag)) { "Invalid mobile version tag" }
+                        val version = tag.removePrefix("v")
+                        val releaseBody = github.optString("body", "")
+                        val versionCode = Regex("Version code:\\s*([0-9]+)", RegexOption.IGNORE_CASE)
+                            .find(releaseBody)?.groupValues?.get(1)?.toIntOrNull()
+                            ?: error("Missing Android version code in GitHub release")
+                        val filename = "SmartSalaryTracker-$version.apk"
+                        val assets = github.getJSONArray("assets")
+                        val asset = (0 until assets.length()).asSequence().map { assets.getJSONObject(it) }
+                            .firstOrNull { it.optString("name") == filename }
+                            ?: error("Android APK not published for $tag")
+                        val apkUrl = asset.getString("browser_download_url")
+                        require(apkUrl == RELEASE_APK_ORIGIN + "$tag/$filename") { "Untrusted Android release URL" }
+                        val assetDigest = asset.optString("digest", "").removePrefix("sha256:").lowercase()
+                        val sha256 = if (assetDigest.matches(Regex("[0-9a-f]{64}"))) assetDigest else
+                            Regex("APK SHA-256:\\s*([0-9a-fA-F]{64})", RegexOption.IGNORE_CASE)
+                                .find(releaseBody)?.groupValues?.get(1)?.lowercase()
+                                ?: error("Missing verified APK SHA-256")
                         require(sha256.matches(Regex("[0-9a-f]{64}"))) { "Invalid APK checksum" }
+                        val release = JSONObject()
+                            .put("versionCode", versionCode)
+                            .put("versionName", version)
+                            .put("apkUrl", apkUrl)
+                            .put("sha256", sha256)
                         release.put("updateAvailable", versionCode > BuildConfig.VERSION_CODE)
                         release.put("currentVersionCode", BuildConfig.VERSION_CODE)
                         release.put("currentVersionName", BuildConfig.VERSION_NAME)
@@ -360,6 +390,75 @@ class MainActivity : AppCompatActivity() {
     }
 
     inner class BackupBridge {
+        /** Convert page one of a PDF to a private JPEG; never sends PDF content to a server. */
+        @JavascriptInterface
+        fun renderPayslipPdf(dataUrl: String, month: String, slot: Int) {
+            if (!Regex("^\\d{4}-(0[1-9]|1[0-2])$").matches(month) || slot !in 1..2) return
+            lifecycleScope.launch(Dispatchers.IO) {
+                val response = runCatching {
+                    require(dataUrl.startsWith("data:application/pdf;base64,", ignoreCase = true))
+                    require(dataUrl.length <= 18000000) { "PDF exceeds the file size limit" }
+                    val bytes = Base64.decode(dataUrl.substringAfter(','), Base64.DEFAULT)
+                    require(bytes.size <= 12000000) { "PDF must be 12 MB or smaller" }
+                    val file = File.createTempFile("payslip-pdf-", ".pdf", cacheDir)
+                    try {
+                        file.writeBytes(bytes)
+                        ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY).use { fd ->
+                            PdfRenderer(fd).use { renderer ->
+                                require(renderer.pageCount >= 1) { "PDF has no pages" }
+                                renderer.openPage(0).use { page ->
+                                    val scale = minOf(1.0, 1600.0 / maxOf(page.width, page.height).toDouble())
+                                    val w = maxOf(1, (page.width * scale).toInt())
+                                    val h = maxOf(1, (page.height * scale).toInt())
+                                    val bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+                                    try {
+                                        bitmap.eraseColor(android.graphics.Color.WHITE)
+                                        page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
+                                        val image = ByteArrayOutputStream().use { stream ->
+                                            require(bitmap.compress(Bitmap.CompressFormat.JPEG, 83, stream))
+                                            stream.toByteArray()
+                                        }
+                                        JSONObject().put("ok", true)
+                                            .put("dataUrl", "data:image/jpeg;base64," + Base64.encodeToString(image, Base64.NO_WRAP))
+                                            .put("firstPageOnly", renderer.pageCount > 1)
+                                    } finally {
+                                        bitmap.recycle()
+                                    }
+                                }
+                            }
+                        }
+                    } finally {
+                        file.delete()
+                    }
+                }.getOrElse { JSONObject().put("ok", false).put("error", it.message ?: "PDF render failed") }
+                withContext(Dispatchers.Main) {
+                    if (!isFinishing && !isDestroyed) {
+                        webView?.evaluateJavascript(
+                            "window.onPayslipPdfRendered?.(${JSONObject.quote(month)},$slot,$response);", null)
+                    }
+                }
+            }
+        }
+
+        /** Android-only local OCR; passes text boxes to the open payslip comparison. */
+        @JavascriptInterface
+        fun recognizePayslip(dataUrl: String, month: String) {
+            if (!Regex("^\\d{4}-(0[1-9]|1[0-2])$").matches(month)) return
+            runOnUiThread {
+                if (isFinishing || isDestroyed) return@runOnUiThread
+                PayslipTextRecognition.recognize(dataUrl) { result ->
+                    val envelope = result.fold(
+                        onSuccess = { json -> JSONObject().put("ok", true).put("result", json) },
+                        onFailure = { e -> JSONObject().put("ok", false).put("error", e.message ?: "OCR unavailable") }
+                    )
+                    webView?.evaluateJavascript(
+                        "window.onPayslipOcrResult?.(${JSONObject.quote(month)},${envelope});",
+                        null
+                    )
+                }
+            }
+        }
+
         @JavascriptInterface
         fun setDailyReminder(enabled: Boolean, timeHHmm: String) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -692,14 +791,40 @@ class MainActivity : AppCompatActivity() {
                 uploadMessage = filePathCallback
 
                 try {
-                    val intent = fileChooserParams?.createIntent()
-                    if (intent != null) {
-                        filePickerLauncher.launch(intent)
-                    } else {
+                    val pickIntent = fileChooserParams?.createIntent() ?: run {
                         uploadMessage = null
                         return false
                     }
+                    val acceptsImages = fileChooserParams.acceptTypes.any {
+                        it == "image/*" || it.startsWith("image/")
+                    }
+                    if (acceptsImages) {
+                        val tempPhoto = File.createTempFile(
+                            "smart-salary-payslip-", ".jpg", externalCacheDir ?: cacheDir
+                        )
+                        val cameraUri = FileProvider.getUriForFile(
+                            this@MainActivity, "${packageName}.fileprovider", tempPhoto
+                        )
+                        val camera = Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
+                            putExtra(MediaStore.EXTRA_OUTPUT, cameraUri)
+                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+                        }
+                        if (camera.resolveActivity(packageManager) != null) {
+                            pendingCameraPhotoUri = cameraUri
+                            filePickerLauncher.launch(Intent.createChooser(pickIntent, "စက်ရုံရှင်းတမ်း ဓာတ်ပုံ").apply {
+                                putExtra(Intent.EXTRA_INITIAL_INTENTS, arrayOf(camera))
+                            })
+                        } else {
+                            pendingCameraPhotoUri = null
+                            filePickerLauncher.launch(pickIntent)
+                        }
+                    } else {
+                        pendingCameraPhotoUri = null
+                        filePickerLauncher.launch(pickIntent)
+                    }
                 } catch (e: Exception) {
+                    pendingCameraPhotoUri = null
+                    uploadMessage?.onReceiveValue(null)
                     uploadMessage = null
                     return false
                 }

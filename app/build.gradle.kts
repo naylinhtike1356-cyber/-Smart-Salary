@@ -20,13 +20,18 @@ android {
         applicationId = "com.naylinhtike.salarytracker"
         minSdk = 24
         targetSdk = 36
-        versionCode = 7
-        versionName = "1.2.4"
+        versionCode = 8
+        versionName = "1.2.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
+        debug {
+            // QA can install beside production; all app storage stays isolated.
+            applicationIdSuffix = ".qa"
+            versionNameSuffix = "-qa"
+        }
         release {
             isMinifyEnabled = false
             signingConfig = signingConfigs.getByName("release")
@@ -64,6 +69,8 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     implementation("androidx.work:work-runtime-ktx:2.9.0")
+    // Bundled on-device Korean OCR; recognition does not upload payslip photos.
+    implementation("com.google.mlkit:text-recognition-korean:16.0.1")
 
     // Google Drive & Auth
     implementation(libs.play.services.auth)

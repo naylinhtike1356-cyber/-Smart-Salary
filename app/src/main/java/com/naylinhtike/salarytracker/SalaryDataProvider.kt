@@ -54,7 +54,7 @@ class SalaryDataProvider : ContentProvider() {
     override fun update(uri: Uri, values: ContentValues?, selection: String?, selectionArgs: Array<out String>?): Int = 0
 
     companion object {
-        const val AUTHORITY = "com.naylinhtike.salarytracker.voiceprovider"
+        val AUTHORITY: String = BuildConfig.APPLICATION_ID + ".voiceprovider"
         val CONTENT_URI: Uri = Uri.parse("content://$AUTHORITY/salary")
     }
 }

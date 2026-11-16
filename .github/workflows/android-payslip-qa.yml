@@ -1,0 +1,52 @@
+name: Android payslip QA (no WebApp deployment)
+
+on:
+  push:
+    branches:
+      - feature/android-payslip-ocr-records-20261116
+    paths:
+      - 'app/**'
+      - 'tests/android-*.test.cjs'
+      - '.github/workflows/android-payslip-qa.yml'
+  pull_request:
+    paths:
+      - 'app/**'
+      - 'tests/android-*.test.cjs'
+      - '.github/workflows/android-payslip-qa.yml'
+
+concurrency:
+  group: android-payslip-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  android-qa:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      # ubuntu-latest already provides Android SDK; avoid deprecated sdkmanager 'tools' package.
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Check Android payroll and OCR rules
+        run: node --test tests/android-payroll.test.cjs tests/android-payslip-ocr.test.cjs
+      - name: Compile Android internal QA APK
+        run: bash ./gradlew :app:assembleDebug --no-daemon
+      - name: Check Android APK output
+        run: test -s app/build/outputs/apk/debug/app-debug.apk
+      - name: Archive QA-only APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-payslip-qa-debug-not-for-production
+          path: app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 7
+
+# NO web_dist build, Vercel deployment, GitHub Release or production update.
+# Debug APK certificates are not guaranteed to match existing installed releases.
