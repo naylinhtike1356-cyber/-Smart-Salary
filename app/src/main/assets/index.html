@@ -5360,6 +5360,51 @@
                 ' · NOT COMPARABLE ' + (periodMismatch ? '1' : '0');
         }
 
+        function exportVerifiedSalaryComparison(month) {
+            if (!validMonthKey(month)) return;
+            const data = calculateMonthSalaryData(month);
+            if (!data.extra.payroll?.reviewedAt || !data.comparison.complete) {
+                showToast('အတည်ပြုပြီးသော ရှင်းတမ်းကိုသာ CSV Export လုပ်နိုင်ပါသည်။', 'error');
+                return;
+            }
+            const groups = KoreanPayroll.payslipLines(data, data.actual.lines || {});
+            const rows = [
+                ['Group', 'Item', 'Unit', 'App', 'Factory', 'App_minus_Factory', 'Status']
+            ];
+            const push = (group, key, unit, app, factory) => {
+                const left = Number.isFinite(app) ? app : null;
+                const right = Number.isFinite(factory) ? factory : null;
+                const diff = left !== null && right !== null ? left - right : null;
+                rows.push([group, key, unit, left, right, diff,
+                    diff === null ? 'MISSING' : diff === 0 ? 'MATCHED' : 'DIFFERENT']);
+            };
+            ['gross', 'deductions', 'net'].forEach(key => push(
+                'total', key, 'KRW',
+                key === 'gross' ? data.grossPay : key === 'deductions' ? data.totalDeductions : data.netSalary,
+                data.actual[key]
+            ));
+            for (const [group, lines] of Object.entries(groups)) {
+                lines.forEach(row => push(group, row.key, row.unit, row.estimate, row.actual));
+            }
+            const cell = value => {
+                let text = value === null || value === undefined ? '' : String(value);
+                // Formula-injection defense; numeric negative differences are safe numeric literals.
+                if (/^[=+@]/.test(text) || (/^-/.test(text) && !/^-?\d+(\.\d+)?$/.test(text))) {
+                    text = "'" + text;
+                }
+                return '"' + text.replaceAll('"', '""') + '"';
+            };
+            const csv = '\uFEFF' + rows.map(row => row.map(cell).join(',')).join('\r\n');
+            const filename = 'SmartSalary-Comparison-' + month + '.csv';
+            if (window.AndroidBridge?.saveBackup) {
+                const saved = window.AndroidBridge.saveBackup(csv, filename, 'text/csv');
+                showToast(saved ? 'CSV နှိုင်းယှဉ်ချက် သိမ်းပြီးပါပြီ။' : 'CSV မသိမ်းနိုင်ပါ။',
+                    saved ? 'success' : 'error');
+            } else {
+                showToast('CSV Export ကို Android App တွင်သာ အသုံးပြုနိုင်ပါသည်။', 'error');
+            }
+        }
+
         function openPayrollComparison(month, expanded) {
             if (!validMonthKey(month)) return;
             currentPayslipMonth = month;
@@ -5426,6 +5471,7 @@
                     <label class="flex items-start gap-2 p-2 rounded-lg bg-amber-50 border border-amber-200 text-sm"><input type="checkbox" name="confirmFactoryStatement" class="mt-1 min-w-[20px] min-h-[20px]" ${payroll.reviewedAt ? 'checked' : ''}><span>ဓာတ်ပုံနှင့် OCR ဂဏန်းအားလုံးကို ကိုယ်တိုင်စစ်ပြီးမှ အတည်ပြုမည်။ OCR ဖတ်ရုံဖြင့် အတည်ပြုမဟုတ်ပါ။</span></label>
                     <p data-checked-lines class="text-xs text-slate-600"></p>
                     <p data-comparison-overview aria-live="polite" class="text-xs font-semibold text-slate-700"></p>
+                    <button type="button" data-export-verified-comparison class="mt-2 px-3 py-2 min-h-[44px] border border-slate-300 rounded-lg text-xs font-semibold">အတည်ပြုထားသော နှိုင်းယှဉ်ချက် CSV ထုတ်ရန်</button>
                     ${groups}
                     <details data-comparison-group="settings" class="rounded-lg border border-slate-200 p-3" ${expanded?.includes('settings') ? 'open' : ''}>
                         <summary class="cursor-pointer font-semibold">${labels.rules}</summary>
@@ -6876,6 +6922,12 @@
         }
         document.addEventListener('click', () => getElement('day-context-menu').classList.add('hidden'));
 
+        elements.payslipModalContent.addEventListener('click', event => {
+            if (event.target.closest('[data-export-verified-comparison]')) {
+                const month = getElement('payroll-comparison-form')?.dataset.month;
+                if (month) exportVerifiedSalaryComparison(month);
+            }
+        });
         elements.payslipModalContent.addEventListener('input', event => {
             if (event.target.matches('input[data-compare-estimate]')) {
                 event.target.form.dataset.dirty = 'true';
