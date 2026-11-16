@@ -111,6 +111,20 @@
             background-color: #3b82f6; /* blue-500 */
             color: white;
         }
+        .nav-button {
+            transition: background-color 180ms ease, color 180ms ease, box-shadow 180ms ease;
+            touch-action: manipulation;
+        }
+        .nav-button > svg, .nav-button > i {
+            transition: transform 180ms ease;
+        }
+        .nav-button.active > svg, .nav-button.active > i {
+            transform: scale(1.08);
+        }
+        .nav-button:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+        @media (prefers-reduced-motion: reduce) {
+            .nav-button, .nav-button > svg, .nav-button > i { transition: none !important; transform: none !important; }
+        }
 
                 /* Hide APK download elements when running inside native mobile app */
         .is-native-app #app-download-banner,
@@ -5182,7 +5196,7 @@
         const PAYROLL_LABELS = {
             my: {
                 estimate: 'ခန့်မှန်း', actual: 'စက်ရုံ', difference: 'ကွာဟချက်', item: 'အချက်',
-                compare: 'စက်ရုံရှင်းတမ်းနှင့် တိုက်စစ်ရန်', compareTitle: 'ရှင်းတမ်းတိုက်စစ်', photo: 'စက်ရုံစာရွက် တွဲရန်', viewPhoto: 'စာရွက်ကြည့်ရန်',
+                compare: 'လစာရှင်းတမ်း နှိုင်းယှဉ်ခြင်း', compareTitle: 'လစာရှင်းတမ်း နှိုင်းယှဉ်ခြင်း', photo: 'စက်ရုံစာရွက် တွဲရန်', viewPhoto: 'စာရွက်ကြည့်ရန်',
                 zoomPhoto: 'ချဲ့ကြည့်ရန်', fitPhoto: 'အပြည့်ပြန်ကြည့်ရန်',
                 photoHint: 'စာရွက်ပေါ်က ဂဏန်းဖြည့်ပါ။ ကွာဟချက် = App − စက်ရုံ',
                 hours: 'အလုပ်ချိန်နှင့် ရက်အရေအတွက်', hourUnit: 'နာရီ', days: 'ရက်', otherDeductions: 'အခြားဖြတ်ငွေ',
