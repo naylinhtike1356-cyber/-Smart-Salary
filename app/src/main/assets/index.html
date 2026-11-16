@@ -5765,6 +5765,7 @@
                     form.dataset.periodMismatch = 'true';
                     if (status) status.textContent = 'NOT COMPARABLE · စာရွက်လ ' + parsed.period +
                         ' နှင့် ရွေးထားသည့်လ ' + month + ' မတူပါ။ မှန်ကန်သည့်လကို ရွေးပြီး ပြန်ဖတ်ပါ။';
+                    updateComparisonFeedback(form);
                     return; // Never mix payroll from different periods.
                 }
                 form.dataset.periodMismatch = 'false';
@@ -6760,6 +6761,10 @@
             if (!validMonthKey(month) || !form.reportValidity()) return;
 
             const labels = payrollLabels();
+            if (form.dataset.periodMismatch === 'true') {
+                showToast('NOT COMPARABLE — စက်ရုံရှင်းတမ်းလနှင့် App ရွေးထားသည့်လ မတူပါ။', 'error');
+                return;
+            }
             const input = name => form.elements.namedItem(name);
             const number = name => input(name).value === '' ? null : input(name).valueAsNumber;
             const previous = state.monthlyExtras;
