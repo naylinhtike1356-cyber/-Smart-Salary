@@ -5301,15 +5301,23 @@
                 badge.hidden = !count;
             }
             const totals = KoreanPayroll.compare(estimate, actual);
+            const periodMismatch = form.dataset.periodMismatch === 'true';
             const reviewed = form.dataset.reviewed === 'true' && form.dataset.dirty !== 'true';
             const totalsDiffer = Object.values(totals.differences).some(gap => gap !== null && gap !== 0);
             const alert = form.querySelector('[data-comparison-status]');
-            alert.textContent = !totals.consistent ? labels.inconsistent :
+            alert.textContent = periodMismatch ? 'NOT COMPARABLE · လစာစာရွက်လနှင့် ရွေးထားသောလ မတူပါ။' :
+                !totals.consistent ? labels.inconsistent :
                 totalsDiffer || detailDifferences ? labels.mismatch :
                 totals.matches ? (reviewed ? (comparedDetails === totalDetails ? labels.allMatch : labels.match) : '✓ ဂဏန်းတူသည် — မအတည်ပြုရသေး၊ စစ်ပြီး သိမ်းရန်') : labels.missing;
-            alert.classList.toggle('text-red-700', !totals.consistent || totalsDiffer || detailDifferences > 0);
-            alert.classList.toggle('text-green-700', reviewed && totals.matches && !detailDifferences);
+            alert.classList.toggle('text-red-700', periodMismatch || !totals.consistent || totalsDiffer || detailDifferences > 0);
+            alert.classList.toggle('text-green-700', !periodMismatch && reviewed && totals.matches && !detailDifferences);
             form.querySelector('[data-checked-lines]').textContent = labels.checkedLines(comparedDetails, totalDetails);
+            const overview = form.querySelector('[data-comparison-overview]');
+            if (overview) overview.textContent = 'MATCHED ' + (comparedDetails - detailDifferences) +
+                ' · DIFFERENT ' + detailDifferences +
+                ' · MISSING ' + (totalDetails - comparedDetails) +
+                ' · UNVERIFIED ' + (reviewed ? '0' : String(comparedDetails)) +
+                ' · NOT COMPARABLE ' + (periodMismatch ? '1' : '0');
         }
 
         function openPayrollComparison(month, expanded) {
@@ -5376,6 +5384,7 @@
                     ${comparisonTable(totals, labels)}
                     <p data-comparison-status role="status" class="text-sm font-semibold text-slate-800"></p>
                     <p data-checked-lines class="text-xs text-slate-600"></p>
+                    <p data-comparison-overview aria-live="polite" class="text-xs font-semibold text-slate-700"></p>
                     ${groups}
                     <details data-comparison-group="settings" class="rounded-lg border border-slate-200 p-3" ${expanded?.includes('settings') ? 'open' : ''}>
                         <summary class="cursor-pointer font-semibold">${labels.rules}</summary>
@@ -5752,9 +5761,16 @@
             }
             try {
                 const parsed = KoreanPayslipOCR.parse(envelope.result);
+                if (parsed.period && parsed.period !== month) {
+                    form.dataset.periodMismatch = 'true';
+                    if (status) status.textContent = 'NOT COMPARABLE · စာရွက်လ ' + parsed.period +
+                        ' နှင့် ရွေးထားသည့်လ ' + month + ' မတူပါ။ မှန်ကန်သည့်လကို ရွေးပြီး ပြန်ဖတ်ပါ။';
+                    return; // Never mix payroll from different periods.
+                }
+                form.dataset.periodMismatch = 'false';
                 form.dataset.ocrPending = 'true';
                 form.dataset.dirty = 'true';
-                window.pendingPayslipOcr = { month, values: parsed.values, warnings: parsed.warnings, recognized: parsed.recognized };
+                window.pendingPayslipOcr = { month, values: parsed.values, warnings: parsed.warnings, recognized: parsed.recognized, period: parsed.period, paymentDate: parsed.paymentDate };
                 let populated = 0;
                 const skipped = [];
                 for (const [key, value] of Object.entries(parsed.values)) {
@@ -6767,6 +6783,8 @@
                     values: { ...window.pendingPayslipOcr.values },
                     warnings: [...window.pendingPayslipOcr.warnings],
                     recognized: window.pendingPayslipOcr.recognized,
+                    period: window.pendingPayslipOcr.period,
+                    paymentDate: window.pendingPayslipOcr.paymentDate,
                     reviewedAt: payroll.reviewedAt
                 };
             }
