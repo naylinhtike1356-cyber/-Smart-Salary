@@ -27,6 +27,11 @@ android {
     }
 
     buildTypes {
+        debug {
+            // QA can install beside production; all app storage stays isolated.
+            applicationIdSuffix = ".qa"
+            versionNameSuffix = "-qa"
+        }
         release {
             isMinifyEnabled = false
             signingConfig = signingConfigs.getByName("release")
