@@ -177,3 +177,11 @@ test('Android supported document input stays scoped to image and PDF', () => {
     assert.match(kotlin, /FileProvider\.getUriForFile/);
     assert.doesNotMatch(html, /https?:\/\/[^\s'"<>]+(?:ocr|recognition)\//i);
 });
+
+test('duplicate image and PDF inputs do not overwrite an already saved photo', () => {
+    assert.match(html, /previousPhotos\.some\(photo => photo\.slot === slot && photo\.dataUrl === compressed\.dataUrl\)/);
+    assert.match(html, /existingPdfPhotos\.some\(photo => photo\.slot === slot && photo\.dataUrl === dataUrl\)/);
+    assert.match(html, /delete nextPayroll\.ocrEvidence/);
+    assert.match(html, /delete payroll\.ocrEvidence/);
+    assert.doesNotMatch(html, /A newly attached or replaced image invalidates a previous verified comparison\./);
+});
